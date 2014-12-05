@@ -19,6 +19,7 @@ function smolyak( D::Int, order::Int )
 		nodes1D[k], weights1D[k] = gausshermite( k )
 
 		# For odd k the middle node is zero
+		# TODO: This is neccesarry in order to get the right unique elements
 		if isodd(k)
 			nodes1D[k][ (k+1)/2 ] = 0
 		end
@@ -117,6 +118,62 @@ function combvec( vecs::Array{Any} )
 	end
 
 	return y
+end
+
+
+# ------------------------------------------------------------ 
+
+# Numerate the columns in a matrix according to the first time it appears
+# and count the number of occurences
+function uniquecolidx(A::Matrix)
+	N = size(A, 2)
+	idx = [1:N]
+	count = ones(Int, N)
+
+	for n = 2:N
+		col = A[:,n]
+
+		for nn = 1:n-1
+			if col == A[:,nn]
+				@inbounds idx[n] = nn
+				@inbounds count[nn] += 1
+			end
+		end
+	end
+
+	return idx, count
+end
+
+
+# Find unique nodes and add the weights of the identical nodes
+function uniquenodes(nodes::Matrix, weights::Vector)
+	idx, count = uniquecolidx(nodes)
+
+	# Find the unique column indices
+	uidx = unique(idx)
+	N = length(uidx)
+	D = size(nodes, 1)
+
+	# Initialize output
+	unodes = Array( eltype(nodes), D, N )
+	uweights = zeros( eltype(weights), N )
+
+	M = length(weights)
+	cur = 1
+	for m = 1:M
+		# If the current index in the original nodes has appeared before
+		# we leave out the node and add the weight
+		if m == idx[m]
+			@inbounds unodes[:,cur] = nodes[:,m]
+			@inbounds uweights[cur] += weights[m]
+
+			cur += 1
+		else
+			uweights[ idx[m] ] += weights[m]
+		end
+	end
+
+	return unodes, uweights
 end
 
 
