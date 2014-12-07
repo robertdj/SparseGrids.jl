@@ -19,7 +19,7 @@ function smolyak( D::Int, order::Int )
 		nodes1D[k], weights1D[k] = gausshermite( k )
 
 		# For odd k the middle node is zero
-		# TODO: This is neccesarry in order to get the right unique elements
+		# TODO: This is necessary in order to get the right unique elements
 		if isodd(k)
 			nodes1D[k][ (k+1)/2 ] = 0
 		end
@@ -54,6 +54,35 @@ function smolyak( D::Int, order::Int )
 	end
 
 	return nodes, weights
+end
+
+
+# Computation of sparse grid nodes and the associated weights
+# from collection of one-dimensional nodes and weights
+
+function smolyak( order::Int, nodes::Array{Any, 1}, weights::Array{Any, 1} )
+end
+
+
+# ------------------------------------------------------------ 
+# To correctly reduce "overlapping" nodes the middle node in and 
+# uneven number must be exactly zero
+
+function symmetrize!( nodes::Vector )
+	N = length(nodes)
+
+	if isodd(N)
+		midpoint = div( N-1, 2 )
+		nodes[ midpoint+1 ] = 0.0
+	else
+		midpoint = div( N, 2 )
+	end
+
+	for n = 1:midpoint
+		nodes[n] = -nodes[N+1-n]
+	end
+
+	display(n)
 end
 
 
