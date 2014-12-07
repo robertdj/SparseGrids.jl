@@ -18,23 +18,39 @@ function smolyak( D::Int, order::Int )
 	for k = 1:order
 		nodes1D[k], weights1D[k] = gausshermite( k )
 
-		# For odd k the middle node is zero
-		# TODO: This is necessary in order to get the right unique elements
-		if isodd(k)
-			nodes1D[k][ (k+1)/2 ] = 0
-		end
+		symmetrize!( nodes1D[k] )
 	end
+
+	nodes, weights = smolyak( D, nodes1D, weights1D )
+
+	return nodes, weights
+end
+
+
+# Computation of sparse grid nodes and the associated weights
+# from collection of one-dimensional nodes and weights
+
+function smolyak( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
+	order = length( nodes1D )
+
+	# Final nodes and weights in D dimensions
+	nodes = Array(Float64, D, 0)
+	weights = Array(Float64, 0)
+
+	mink = order
+	maxk = order + D - 1
 
 	# Temporary nodes and weights for 1 dimension
 	N = cell(D)
 	W = cell(D)
 
+	# TODO: Make this robust
 	for k = mink:maxk
 		alpha = listNdq(D, k)
 		nalpha = size(alpha, 2)
 
 		for n = 1:nalpha
-			# Necessary univariate nodes and weights
+			# The nodes and weights for this alpha mixture
 			for d = 1:D
 				N[d] = nodes1D[ alpha[d,n] ]
 				W[d] = weights1D[ alpha[d,n] ]
@@ -53,14 +69,11 @@ function smolyak( D::Int, order::Int )
 		end
 	end
 
+	# Remove redundant nodes
+	#=unodes, uweights = uniquenodes(nodes, weights)=#
+
+	#return unodes, uweights
 	return nodes, weights
-end
-
-
-# Computation of sparse grid nodes and the associated weights
-# from collection of one-dimensional nodes and weights
-
-function smolyak( order::Int, nodes::Array{Any, 1}, weights::Array{Any, 1} )
 end
 
 
@@ -81,8 +94,6 @@ function symmetrize!( nodes::Vector )
 	for n = 1:midpoint
 		nodes[n] = -nodes[N+1-n]
 	end
-
-	display(n)
 end
 
 
@@ -154,6 +165,8 @@ end
 
 # Numerate the columns in a matrix according to the first time it appears
 # and count the number of occurences
+
+# TODO: Make faster
 function uniquecolidx(A::Matrix)
 	N = size(A, 2)
 	idx = [1:N]
@@ -175,6 +188,7 @@ end
 
 
 # Find unique nodes and add the weights of the identical nodes
+
 function uniquenodes(nodes::Matrix, weights::Vector)
 	idx, count = uniquecolidx(nodes)
 
@@ -193,11 +207,12 @@ function uniquenodes(nodes::Matrix, weights::Vector)
 		# If the current index in the original nodes has appeared before
 		# we leave out the node and add the weight
 		if m == idx[m]
-			@inbounds unodes[:,cur] = nodes[:,m]
-			@inbounds uweights[cur] += weights[m]
+			unodes[:,cur] = nodes[:,m]
+			uweights[cur] += weights[m]
 
 			cur += 1
 		else
+			display(m)
 			uweights[ idx[m] ] += weights[m]
 		end
 	end

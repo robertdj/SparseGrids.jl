@@ -10,6 +10,7 @@ export
 	smolyak,
 	tensorgrid,
 	listNdq,
-	combvec
+	combvec,
+	symmetrize!
 
 end # module
