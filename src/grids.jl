@@ -160,59 +160,41 @@ end
 
 # ------------------------------------------------------------ 
 
-# Numerate the columns in a matrix according to the first time it appears
-# and count the number of occurences
+# Copy of Base.sortcols that also returns the permutation indices
 
-# TODO: Make faster
-function uniquecolidx(A::Matrix)
-	N = size(A, 2)
-	idx = [1:N]
-	count = ones(Int, N)
+function sortcolsidx(A::AbstractMatrix; kws...)
+    r = 1:size(A,1)
+    cols = [ sub(A,r,i) for i=1:size(A,2) ]
+    p = sortperm(cols; kws..., order=Base.Order.Lexicographic)
 
-	for n = 2:N
-		col = A[:,n]
-
-		for nn = 1:n-1
-			if col == A[:,nn]
-				@inbounds idx[n] = nn
-				@inbounds count[nn] += 1
-			end
-		end
-	end
-
-	return idx, count
+    return A[:,p], p
 end
 
 
-# Find unique nodes and add the weights of the identical nodes
+# Find unique nodes and sum the weights of the identical nodes
 
 function uniquenodes(nodes::Matrix, weights::Vector)
-	idx, count = uniquecolidx(nodes)
+	# Sort nodes and weights according to nodes
+	sortnodes, P = sortcolsidx(nodes)
+	weights = weights[P]
 
-	# Find the unique column indices
-	uidx = unique(idx)
-	N = length(uidx)
-	D = size(nodes, 1)
+	D, N = size(nodes)
 
-	# Initialize output
-	unodes = Array( eltype(nodes), D, N )
-	uweights = zeros( eltype(weights), N )
+	keep = [1]
+	lastkeep = 1
 
-	M = length(weights)
-	cur = 1
-	for m = 1:M
-		# If the current index in the original nodes has appeared before
-		# we leave out the node and add the weight
-		if m == idx[m]
-			unodes[:,cur] = nodes[:,m]
-			uweights[cur] += weights[m]
-
-			cur += 1
+	for n = 2:N
+		if sortnodes[:,n] == sortnodes[:,n-1]
+			weights[lastkeep] += weights[n]
 		else
-			display(m)
-			uweights[ idx[m] ] += weights[m]
+			lastkeep = n
+			push!(keep, n)
 		end
 	end
+
+	# Keep unique nodes
+	unodes = sortnodes[:, keep]
+	uweights = weights[keep]
 
 	return unodes, uweights
 end
