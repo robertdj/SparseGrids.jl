@@ -1,7 +1,7 @@
 module SparseGrid
 
 import FastGaussQuadrature: gausshermite
-import Iterators: collect
+import Iterators: collect, product
 
 include("grids.jl")
 

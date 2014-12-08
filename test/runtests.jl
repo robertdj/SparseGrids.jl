@@ -1,5 +1,5 @@
-using SparseGrid.jl
 using Base.Test
+using SparseGrid
 
-# write your own tests here
-@test 1 == 1
+include("quadtest.jl")
+
