@@ -67,10 +67,9 @@ function smolyak( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
 	end
 
 	# Remove redundant nodes
-	#=unodes, uweights = uniquenodes(nodes, weights)=#
+	unodes, uweights = uniquenodes(nodes, weights)
 
-	#return unodes, uweights
-	return nodes, weights
+	return unodes, uweights
 end
 
 
