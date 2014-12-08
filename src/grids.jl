@@ -1,8 +1,14 @@
 # Computation of sparse grid nodes and the associated weights
 # D : Dimension of integrant
 # k : Order of quadrature rule
+# f : Function generating 1D nodes and weights -- in that order
+# sym : Boolean variable determining if the nodes should be symmetrized
 
-function smolyak( D::Int, order::Int )
+# If the nodes are supposed to be symmetric (as those in the Gauss-Hermite rule), 
+# they should be so in order to correctly identify multiply occuring nodes in the 
+# union of sparse sets
+
+function smolyak( D::Int, order::Int; f::Function=gausshermite, sym::Bool=true )
 	# Final nodes and weights in D dimensions
 	nodes = Array(Float64, D, 0)
 	weights = Array(Float64, 0)
@@ -11,12 +17,12 @@ function smolyak( D::Int, order::Int )
 	nodes1D = cell(order)
 	weights1D = similar(nodes1D)
 
-	# TODO: Make it possible to use other schemes than Gauss-Hermite
-	# Check quadgk
 	for k = 1:order
-		nodes1D[k], weights1D[k] = gausshermite( k )
+		nodes1D[k], weights1D[k] = f( k )
 
-		symmetrize!( nodes1D[k] )
+		if sym
+			symmetrize!( nodes1D[k] )
+		end
 	end
 
 	nodes, weights = smolyak( D, nodes1D, weights1D )
@@ -213,9 +219,8 @@ function tensorgrid( N::Vector, W::Vector, D::Int )
 end
 
 
-# TODO: Make it possible to use other schemes than Gauss-Hermite
-function tensorgrid( D::Int, order::Int )
-	N, W = gausshermite(order)
+function tensorgrid( D::Int, order::Int, f::Function=gausshermite )
+	N, W = f(order)
 
 	tensorN, tensorW = tensorgrid(N, W, D)
 

@@ -35,6 +35,7 @@ See also the scripts in the `test` folder.
 The sparse grid quadrature rules are described in e.g.
 
 * Thomas Gerstner, Michael Griebel, "Numerical integration using sparse grids", Numerical Algorithms, 1998, 209--232.
+[DOI](http://dx.doi.org/10.1023/A:1019129717644)
 * Florian Heiss, Victor Winschel, "Likelihood approximation by numerical integration on sparse grids", Journal of Econometrics, 2008, 144, 62-80.
 [DOI](http://dx.doi.org/10.1016/j.jeconom.2007.12.004)
 * Vesa Kaarnioja, "Smolyak Quadrature", Master's thesis, University of Helsinki, 2013.
