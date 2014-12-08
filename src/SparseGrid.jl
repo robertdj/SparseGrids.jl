@@ -1,4 +1,4 @@
-module SparseGrid.jl
+module SparseGrid
 
 import FastGaussQuadrature: gausshermite
 import Iterators: collect

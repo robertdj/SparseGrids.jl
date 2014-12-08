@@ -7,14 +7,12 @@ function smolyak( D::Int, order::Int )
 	nodes = Array(Float64, D, 0)
 	weights = Array(Float64, 0)
 
-	mink = order
-	maxk = order + D - 1
-
 	# Compute univariate nodes and weights
 	nodes1D = cell(order)
 	weights1D = similar(nodes1D)
 
 	# TODO: Make it possible to use other schemes than Gauss-Hermite
+	# Check quadgk
 	for k = 1:order
 		nodes1D[k], weights1D[k] = gausshermite( k )
 
@@ -37,16 +35,15 @@ function smolyak( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
 	nodes = Array(Float64, D, 0)
 	weights = Array(Float64, 0)
 
-	mink = order
-	maxk = order + D - 1
+	mink = max(0, order-D)
+	maxk = order - 1
 
 	# Temporary nodes and weights for 1 dimension
 	N = cell(D)
 	W = cell(D)
 
-	# TODO: Make this robust
 	for k = mink:maxk
-		alpha = listNdq(D, k)
+		alpha = listNdq(D, D+k)
 		nalpha = size(alpha, 2)
 
 		for n = 1:nalpha
@@ -61,11 +58,11 @@ function smolyak( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
 
 			# Compute the associated weights
 			cw = combvec(W)
-			combW = (-1)^(maxk-k) * binomial(D-1, k-order) * prod(cw, 1)
+			combW = (-1)^(maxk-k) * binomial(D-1, D+k-order) * prod(cw, 1)
 
 			# Save nodes and weights
 			nodes = [nodes combN]
-			weights = [weights ; combW[:]]
+			weights = [weights ; vec(combW)]
 		end
 	end
 
@@ -78,7 +75,7 @@ end
 
 
 # ------------------------------------------------------------ 
-# To correctly reduce "overlapping" nodes the middle node in and 
+# To correctly reduce "overlapping" nodes the middle node in an
 # uneven number must be exactly zero
 
 function symmetrize!( nodes::Vector )
