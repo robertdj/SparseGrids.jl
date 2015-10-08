@@ -1,6 +1,6 @@
 # Sparsegrids
 
-[![Build Status](https://travis-ci.org/robertdj/WaveletGLG.jl.svg?branch=master)](https://travis-ci.org/robertdj/SparseGrid.jl)
+[![Build Status](https://travis-ci.org/robertdj/Sparsegrids.jl.svg?branch=master)](https://travis-ci.org/robertdj/SparseGrids.jl)
 
 This package computes sparse grids for quadrature rules used to compute multidimensional integrals.
 
