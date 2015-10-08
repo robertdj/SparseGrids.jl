@@ -1,14 +1,17 @@
-# Computation of sparse grid nodes and the associated weights
-# D : Dimension of integrant
-# k : Order of quadrature rule
-# f : Function generating 1D nodes and weights -- in that order
-# sym : Boolean variable determining if the nodes should be symmetrized
+@doc """
+	sparsegrid( D::Int, order::Int; f::Function=gausshermite, sym::Bool=true )
 
-# If the nodes are supposed to be symmetric (as those in the Gauss-Hermite rule), 
-# they should be so in order to correctly identify multiply occuring nodes in the 
-# union of sparse sets
+Computation of sparse grid nodes and the associated weights
+`D` : Dimension of integrant
+`k` : Order of quadrature rule
+`f` : Function generating 1D nodes and weights -- in that order
+`sym` : Boolean variable determining if the nodes should be symmetrized
 
-function smolyak( D::Int, order::Int; f::Function=gausshermite, sym::Bool=true )
+If the nodes are supposed to be symmetric (as those in the Gauss-Hermite rule), 
+they should be so in order to correctly identify multiply occuring nodes in the 
+union of sparse sets
+"""->
+function sparsegrid( D::Int, order::Int; f::Function=gausshermite, sym::Bool=true )
 	# Final nodes and weights in D dimensions
 	nodes = Array(Float64, D, 0)
 	weights = Array(Float64, 0)
@@ -25,7 +28,7 @@ function smolyak( D::Int, order::Int; f::Function=gausshermite, sym::Bool=true )
 		end
 	end
 
-	nodes, weights = smolyak( D, nodes1D, weights1D )
+	nodes, weights = sparsegrid( D, nodes1D, weights1D )
 
 	return nodes, weights
 end
@@ -34,7 +37,7 @@ end
 # Computation of sparse grid nodes and the associated weights
 # from collection of one-dimensional nodes and weights
 
-function smolyak( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
+function sparsegrid( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
 	order = length( nodes1D )
 
 	# Final nodes and weights in D dimensions
@@ -83,7 +86,7 @@ end
 # To correctly reduce "overlapping" nodes the middle node in an
 # uneven number must be exactly zero
 
-function symmetrize!( nodes::Vector )
+function symmetrize!( nodes::Vector{Float64} )
 	N = length(nodes)
 
 	if isodd(N)
@@ -101,10 +104,13 @@ end
 
 # ------------------------------------------------------------ 
 
-# Find elements in the set N^D_q = { i \in N^D : sum(i) = q }
-# The algorithm and the formula for computing the number of elements in this 
-# set is found in the thesis mentioned in the README
+@doc """
+	listNdq( D::Int, q::Int )
 
+Find elements in the set `N^D_q = { i \in N^D : sum(i) = q }`.
+
+The algorithm and the formula for computing the number of elements in this set is found in the thesis mentioned in the README
+"""->
 function listNdq( D::Int, q::Int )
 	if q < D
 		error("listNdq: q must be larger than D")
@@ -143,9 +149,12 @@ function listNdq( D::Int, q::Int )
 end
 
 
-# Counterpart of Matlab's combvec: 
-# Creates all combinations of vectors. These are passed as a cell of vectors
-# Uses the Iterators package
+@doc """
+	combvec( vecs::Array{Any} )
+
+Counterpart of Matlab's combvec: 
+Creates all combinations of vectors. These are passed as a cell of vectors Uses the Iterators package
+"""->
 function combvec( vecs::Array{Any} )
 	# Construct all Cartesian combinations of elements in vec as tuples
 	P = collect(product( vecs... ))
@@ -166,7 +175,6 @@ end
 # ------------------------------------------------------------ 
 
 # Copy of Base.sortcols that also returns the permutation indices
-
 function sortcolsidx(A::AbstractMatrix; kws...)
     r = 1:size(A,1)
     cols = [ sub(A,r,i) for i=1:size(A,2) ]
@@ -176,8 +184,11 @@ function sortcolsidx(A::AbstractMatrix; kws...)
 end
 
 
-# Find unique nodes and sum the weights of the identical nodes
+@doc """
+	uniquenodes(nodes::Matrix, weights::Vector)
 
+Find unique nodes and sum the weights of the identical nodes
+"""->
 function uniquenodes(nodes::Matrix, weights::Vector)
 	# Sort nodes and weights according to nodes
 	sortnodes, P = sortcolsidx(nodes)
@@ -208,6 +219,11 @@ end
 # ------------------------------------------------------------ 
 # Compute tensor product grid
 
+@doc """
+	tensorgrid( N::Vector, W::Vector, D::Int )
+
+	Compute tensor grid of `N` nodes and corresponding weights `W` for `D` dimensions.
+"""->
 function tensorgrid( N::Vector, W::Vector, D::Int )
 	NN = repeat( Any[N], outer=[D 1] )
 	WW = repeat( Any[W], outer=[D 1] )

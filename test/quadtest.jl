@@ -1,13 +1,22 @@
+# Moments of exp(-x^2)
+function gaussmoment(m::Int)
+	@assert m >= 0
+
+	if isodd(m)
+		return 0.0
+	elseif iseven(m)
+		m2 = div(m,2)
+		return prod( 1:2:m-1 ) * sqrt(pi) / 2^m2
+	end
+end
+
 # Moments of exp(-|x|^2)
-function ghmoment( P::Vector )
-	P = float(P)
-	D = length(P)
-
+function ghmoment( P::Vector{Int} )
 	I = 1.0
-
-	for d = 1:D
-		Id = quadgk( x -> x.^P[d] .* exp(-x.^2), -Inf, Inf )
-		I *= Id[1]
+	for d = 1:length(P)
+		#= Id = quadgk( x -> x.^P[d] .* exp(-x.^2), -Inf, Inf ) =#
+		#= I *= Id[1] =#
+		I *= gaussmoment(P[d])
 	end
 
 	return I 
@@ -34,10 +43,10 @@ D = 3
 order = 4
 
 # Quadrature points and weights
-N, W = smolyak( D, order )
+N, W = sparsegrid( D, order )
 
 # Moments to test
-vecs = repmat( Any[[0:order]], D )
+vecs = repmat( Any[[0:order;]], D )
 P = combvec( vecs )
 
 M = size(P, 2)
