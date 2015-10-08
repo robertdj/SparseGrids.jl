@@ -14,8 +14,6 @@ end
 function ghmoment( P::Vector{Int} )
 	I = 1.0
 	for d = 1:length(P)
-		#= Id = quadgk( x -> x.^P[d] .* exp(-x.^2), -Inf, Inf ) =#
-		#= I *= Id[1] =#
 		I *= gaussmoment(P[d])
 	end
 
