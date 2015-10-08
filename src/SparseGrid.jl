@@ -7,10 +7,11 @@ include("grids.jl")
 
 # package code goes here
 export
-	smolyak,
+	sparsegrid,
 	tensorgrid,
 	listNdq,
 	combvec,
 	symmetrize!
 
 end # module
+
