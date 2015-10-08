@@ -1,4 +1,4 @@
-module SparseGrid
+module SparseGrids
 
 import FastGaussQuadrature: gausshermite
 import Iterators: collect, product
