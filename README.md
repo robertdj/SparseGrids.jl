@@ -50,7 +50,7 @@ The algorithm for computing the integer D-vectors with constant 1-norm is found 
 ## ToDos ##
 
 Sparse grids generated with nested quadrature rules have less points in higher dimensions. 
-At some points this may be implemented from e.g.
+This may be implemented later with the methods from e.g.
 
 * Sanjay Mehrotra, David Papp; "Generating nested quadrature formulas for general weight functions with known moments"
 arXiv: [1203.1554 [math.NA]](http://arxiv.org/abs/1203.1554v1)
