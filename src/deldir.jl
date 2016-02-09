@@ -1,5 +1,8 @@
 module deldir
 
-# package code goes here
+include("wrapper.jl")
+
+export
+	deldir
 
 end # module
