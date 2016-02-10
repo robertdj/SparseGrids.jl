@@ -1,6 +1,16 @@
 const libdeldir = "/Library/Frameworks/R.framework/Versions/3.2/Resources/library/deldir/libs/deldir.so"
 #= const libdeldir = expanduser("~/R/x86_64-pc-linux-gnu-library/3.0/deldir/libs/deldir.so") =#
 
+type DelDir
+end
+
+type DelDirRaw
+	delsgs::Matrix{Float64}
+	dirsgs::Matrix{Float64}
+	summary::Matrix{Float64}
+end
+
+#=
 @doc """
 	deldir(x::Vector, y::Vector; ...)
 
@@ -9,16 +19,22 @@ points with x-coordinates `x` and y-coordinates ´y´.
 
 Optional arguments are
 
-- `sort`: 
-- `rw`:
+- `rw`: Boundary rectangle specified as a vector with `[xmin, xmax, ymin, ymax]`.
 - `epsilon`:
 """->
-function deldir(x::Vector{Float64}, y::Vector{Float64}; 
-	sort::Int64=1, rw::Vector{Float64}=[0.0;1.0;0.0;1.0], epsilon::Float64=1e-9)
-	# TODO: rw depends on data
+=#
+@debug function deldir(x::Vector{Float64}, y::Vector{Float64}; 
+	rw::Vector=[0.0;1.0;0.0;1.0], epsilon::Float64=1e-9)
 
 	@assert (num_points = length(x)) == length(y) "Coordinate vectors must be of equal length"
 	@assert epsilon >= eps(Float64)
+	@assert minimum(x) >= rw[1] && maximum(x) <= rw[2] && minimum(y) >= rw[3] && 
+	maximum(y) <= rw[4] "Boundary window is too small"
+
+	# According to the documentation in the R package: 
+	# 'sort' would get used only in a de-bugging process
+	# Therefore it is not an argument to this function
+	sort = 1
 
 	# Dummy points
 	num_dum_points = 0
@@ -37,10 +53,10 @@ function deldir(x::Vector{Float64}, y::Vector{Float64};
 	# Set up dimensioning constants which might need to be increased
 	madj = max( 20, ceil(Int32,3*sqrt(ntot)) )
 	tadj = (madj+1)*(ntot+4)
-	ndel = Int32( madj*(madj+1)/2 )
-	tdel = 6*ndel
+	ndel = Int32[ madj*(madj+1)/2 ]
+	tdel = 6*ndel[]
 	ndir = ndel
-	tdir = 8*ndir
+	tdir = 8*ndir[]
 
 	nadj   = zeros(Int32, tadj)
 	ind    = zeros(Int32, npd)
@@ -64,6 +80,15 @@ function deldir(x::Vector{Float64}, y::Vector{Float64};
 	dirsgs, ndir, dirsum, nerror
 	)
 
-	return nerror
+	# TODO: slice instead of reshape?
+	delsgs = reshape(delsgs, 6, div(tdel,6))'
+	dirsgs = reshape(dirsgs, 8, div(tdir,8))'
+	delsum = reshape(delsum, npd, 4)
+	dirsum = reshape(dirsum, npd, 3)
+	#= allsum = [delsum delsum[:,4]/sum(delsum[:,4]) dirsum dirsum[:,3]/sum(dirsum[:,3])] =#
+	allsum = [delsum dirsum]
+
+	output = DelDirRaw( delsgs[1:ndel[],:], dirsgs[1:ndir[],:], allsum )
+	return output
 end
 
