@@ -1,6 +1,3 @@
-const libdeldir = "/Library/Frameworks/R.framework/Versions/3.2/Resources/library/deldir/libs/deldir.so"
-#= const libdeldir = expanduser("~/R/x86_64-pc-linux-gnu-library/3.0/deldir/libs/deldir.so") =#
-
 # TODO: A `show` command for this type?
 type DelDir
 	delsgs::DataFrame
@@ -220,31 +217,32 @@ function deldir(x::Vector{Float64}, y::Vector{Float64}; args...)
 	raw = rawdeldir(x,y; args...)
 
 	delsgs = DataFrame()
-	delsgs[:x1] = raw.delsgs[:,1]
-	delsgs[:y1] = raw.delsgs[:,2]
-	delsgs[:x2] = raw.delsgs[:,3]
-	delsgs[:y2] = raw.delsgs[:,4]
+	delsgs[:x1]   = raw.delsgs[:,1]
+	delsgs[:y1]   = raw.delsgs[:,2]
+	delsgs[:x2]   = raw.delsgs[:,3]
+	delsgs[:y2]   = raw.delsgs[:,4]
 	delsgs[:ind1] = round(Int64,raw.delsgs[:,5])
 	delsgs[:ind2] = round(Int64,raw.delsgs[:,6])
 
 	vorsgs = DataFrame()
-	vorsgs[:x1] = raw.vorsgs[:,1]
-	vorsgs[:y1] = raw.vorsgs[:,2]
-	vorsgs[:x2] = raw.vorsgs[:,3]
-	vorsgs[:y2] = raw.vorsgs[:,4]
+	vorsgs[:x1]   = raw.vorsgs[:,1]
+	vorsgs[:y1]   = raw.vorsgs[:,2]
+	vorsgs[:x2]   = raw.vorsgs[:,3]
+	vorsgs[:y2]   = raw.vorsgs[:,4]
 	vorsgs[:ind1] = round(Int64,raw.vorsgs[:,5])
 	vorsgs[:ind2] = round(Int64,raw.vorsgs[:,6])
-	vorsgs[:bp1] = raw.vorsgs[:,7] .== 1
-	vorsgs[:bp2] = raw.vorsgs[:,8] .== 1
+	vorsgs[:bp1]  = raw.vorsgs[:,7] .== 1
+	vorsgs[:bp2]  = raw.vorsgs[:,8] .== 1
 
 	summary = DataFrame()
-	summary[:x] = raw.summary[:,1]
-	summary[:y] = raw.summary[:,2]
-	summary[:ntri] = round(Int64,raw.summary[:,3])
+	summary[:x]        = raw.summary[:,1]
+	summary[:y]        = raw.summary[:,2]
+	summary[:ntri]     = round(Int64,raw.summary[:,3])
 	summary[:del_area] = raw.summary[:,4]
-	summary[:n_tside] = round(Int64,raw.summary[:,5])
-	summary[:nbpt] = round(Int64,raw.summary[:,6])
+	summary[:n_tside]  = round(Int64,raw.summary[:,5])
+	summary[:nbpt]     = round(Int64,raw.summary[:,6])
 	summary[:vor_area] = raw.summary[:,7]
 
 	return DelDir( delsgs, vorsgs, summary )
 end
+
