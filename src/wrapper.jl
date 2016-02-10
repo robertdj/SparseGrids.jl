@@ -1,7 +1,11 @@
 const libdeldir = "/Library/Frameworks/R.framework/Versions/3.2/Resources/library/deldir/libs/deldir.so"
 #= const libdeldir = expanduser("~/R/x86_64-pc-linux-gnu-library/3.0/deldir/libs/deldir.so") =#
 
+# TODO: A `show` command for this type?
 type DelDir
+	delsgs::DataFrame
+	dirsgs::DataFrame
+	summary::DataFrame
 end
 
 type DelDirRaw
@@ -143,20 +147,12 @@ macro finalize()
 end
 
 @doc """
-deldir(x::Vector, y::Vector; ...)
+	rawdeldir(x::Vector{Float64}, y::Vector{Float64}; ...)
 
-Compute the Delaunay triangulation and Voronoi tesselation of the 2D
-points with x-coordinates `x` and y-coordinates `y`.
-
-Optional arguments are
-
-- `rw`: Boundary rectangle specified as a vector with `[xmin, xmax, ymin, ymax]`.
-By default, `rw` is the unit rectangle.
-- `epsilon`: A value of epsilon used in testing whether a quantity is zeros, mainly in the context of whether points are collinear.
-If anomalous errors arise, it is possible that these may averted by adjusting the value of `epsilon` upward or downward.
-By default, `epsilon = 1e-9`.
+Wrapper for the Fortran code that returns the output rather undigested.
+Only intended for in-package calls!
 """->
-function deldir(x::Vector{Float64}, y::Vector{Float64}; 
+function rawdeldir(x::Vector{Float64}, y::Vector{Float64}; 
 	rw::Vector=[0.0;1.0;0.0;1.0], epsilon::Float64=1e-9)
 
 	@assert length(x) == length(y) "Coordinate vectors must be of equal length"
@@ -173,7 +169,7 @@ function deldir(x::Vector{Float64}, y::Vector{Float64};
 		Ref{Int32}, Ref{Int32}, Ref{Int32}, Ref{Int32}, Ref{Float64}, Ref{Float64}, 
 		Ref{Int32}, Ref{Float64}, Ref{Float64}, Ref{Int32}, Ref{Float64}, 
 		Ref{Float64}, Ref{Int32}, Ref{Float64}, Ref{Int32}),
-		X, Y, sort, rw, npd, 
+		X, Y, sort, float(rw), npd, 
 		ntot, nadj, madj, ind, tx, ty, 
 		ilist, epsilon, delsgs, ndel, delsum, 
 		dirsgs, ndir, dirsum, nerror
@@ -187,3 +183,68 @@ function deldir(x::Vector{Float64}, y::Vector{Float64};
 	return DelDirRaw( delsgs[1:ndel[],:], dirsgs[1:ndir[],:], allsum )
 end
 
+@doc """
+	deldir(x::Vector, y::Vector; ...)
+
+Compute the Delaunay triangulation and Voronoi tesselation of the 2D points with x-coordinates `x` and y-coordinates `y`.
+
+Optional arguments are
+
+- `rw`: Boundary rectangle specified as a vector with `[xmin, xmax, ymin, ymax]`.
+By default, `rw` is the unit rectangle.
+- `epsilon`: A value of epsilon used in testing whether a quantity is zeros, mainly in the context of whether points are collinear.
+If anomalous errors arise, it is possible that these may averted by adjusting the value of `epsilon` upward or downward.
+By default, `epsilon = 1e-9`.
+
+The output is a struct with three `DataFrame`s:
+
+###### `delsgs`
+- The `x1`, `y1`, `x2` & `y2` entires are the coordinates of the points joined by an edge of a Delaunay triangle.
+- The `ind1` and `ind2` entries are the indices of the two points which are joined.
+
+###### `dirsgs`
+- The `x1`, `y1`, `x2` & `y2` entires are the coordinates of the endpoints of one the edges of a Voronoi cell.
+- The `ind1` and `ind2` entries are the indices of the two points, in the set being triangulated, which are separated by that edge
+- The `bp1` entry indicates whether the first endpoint of the corresponding edge of a Voronoi cell is a boundary point (a point on the boundary of the rectangular window). 
+Likewise for the `bp2` entry and the second endpoint of the edge.
+
+###### `summary`
+- The `x` and `y` entries of each row are the coordinates of the points in the set being triangulated.
+- The `ntri` entry are the number of Delaunay triangles emanating from the point.
+- The `del_area` entry is `1/3` of the total area of all the Delaunay triangles emanating from the point.
+- The `n_tside` entry is the number of sides — within the rectangular window — of the Voronoi cell surrounding the point.
+- The `nbpt` entry is the number of points in which the Voronoi cell intersects the boundary of the rectangular window.
+- The `dir_area` entry is the area of the Voronoi cell surrounding the point.
+"""->
+function deldir(x::Vector{Float64}, y::Vector{Float64}; args...)
+	raw = rawdeldir(x,y; args...)
+
+	delsgs = DataFrame()
+	delsgs[:x1] = raw.delsgs[:,1]
+	delsgs[:y1] = raw.delsgs[:,2]
+	delsgs[:x2] = raw.delsgs[:,3]
+	delsgs[:y2] = raw.delsgs[:,4]
+	delsgs[:ind1] = round(Int64,raw.delsgs[:,5])
+	delsgs[:ind2] = round(Int64,raw.delsgs[:,6])
+
+	dirsgs = DataFrame()
+	dirsgs[:x1] = raw.dirsgs[:,1]
+	dirsgs[:y1] = raw.dirsgs[:,2]
+	dirsgs[:x2] = raw.dirsgs[:,3]
+	dirsgs[:y2] = raw.dirsgs[:,4]
+	dirsgs[:ind1] = round(Int64,raw.dirsgs[:,5])
+	dirsgs[:ind2] = round(Int64,raw.dirsgs[:,6])
+	dirsgs[:bp1] = raw.dirsgs[:,7] .== 1
+	dirsgs[:bp2] = raw.dirsgs[:,8] .== 1
+
+	summary = DataFrame()
+	summary[:x] = raw.summary[:,1]
+	summary[:y] = raw.summary[:,2]
+	summary[:ntri] = round(Int64,raw.summary[:,3])
+	summary[:del_area] = raw.summary[:,4]
+	summary[:n_tside] = round(Int64,raw.summary[:,5])
+	summary[:nbpt] = round(Int64,raw.summary[:,6])
+	summary[:dir_area] = raw.summary[:,7]
+
+	return DelDir( delsgs, dirsgs, summary )
+end
