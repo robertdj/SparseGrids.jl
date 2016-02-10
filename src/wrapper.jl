@@ -13,7 +13,7 @@ end
 @doc """
 	remove_duplicates(x::Vector, y::Vector)
 
-Remove the duplicate tuples `(x[i],y[i])` from the vectors `x` and `y`.
+Remove duplicate tuples `(x[i],y[i])` from the vectors `x` and `y`.
 """->
 function remove_duplicates(x::Vector, y::Vector)
 	points = [x y]
@@ -69,6 +69,58 @@ macro initialize()
 		dirsgs = zeros(Float64, tdir)
 		dirsum = zeros(Float64, ntdir)
 		nerror = Int32[1]
+
+		@allocate
+	end)
+end
+
+@doc """
+	allocate()
+
+Allocate input to be modified by the deldir Fortran routine
+"""->
+macro allocate()
+	esc(quote
+		nadj   = zeros(Int32, tadj)
+		ind    = zeros(Int32, npd)
+		tx     = zeros(Float64, npd)
+		ty     = zeros(Float64, npd)
+		ilist  = zeros(Int32, npd)
+		delsgs = zeros(Float64, tdel)
+		delsum = zeros(Float64, ntdel)
+		dirsgs = zeros(Float64, tdir)
+		dirsum = zeros(Float64, ntdir)
+		nerror = Int32[1]
+	end)
+end
+
+@doc """
+	error_handling()
+
+Handle errors from the deldir Fortran routine
+"""->
+macro error_handling()
+	esc(quote
+		if nerror[] == 4
+			madj = ceil(Int32, 1.2*madj)
+			tadj = (madj+1)*(ntot+4)
+			ndel = max( ndel, div(madj*(madj+1),2) )
+			tdel = 6*ndel[]
+			ndir = ndel
+			tdir = 8*ndir[]
+			@allocate
+		elseif nerror[] == 14 || nerror[] == 15
+			ndel = ceil(Int32, 1.2*ndel)
+			tdel = 6*ndel[]
+			ndir = ndel
+			tdir = 8*ndir[]
+			@allocate
+		#= elseif nerror[] < 0 =#
+		#= 	break =#
+		#= else =#
+		elseif nerror[] > 1
+			error("From `deldir` Fortran, nerror = ", nerror[])
+		end
 	end)
 end
 
@@ -115,16 +167,20 @@ function deldir(x::Vector{Float64}, y::Vector{Float64};
 	@initialize
 
 	# Call Fortran routine
-	ccall( (:master_, libdeldir), Void,
-	(Ref{Float64}, Ref{Float64}, Ref{Int32}, Ref{Float64}, Ref{Int32},
-	Ref{Int32}, Ref{Int32}, Ref{Int32}, Ref{Int32}, Ref{Float64}, Ref{Float64}, 
-	Ref{Int32}, Ref{Float64}, Ref{Float64}, Ref{Int32}, Ref{Float64}, 
-	Ref{Float64}, Ref{Int32}, Ref{Float64}, Ref{Int32}),
-	X, Y, sort, rw, npd, 
-	ntot, nadj, madj, ind, tx, ty, 
-	ilist, epsilon, delsgs, ndel, delsum, 
-	dirsgs, ndir, dirsum, nerror
-	)
+	while nerror[] >= 1
+		ccall( (:master_, libdeldir), Void,
+		(Ref{Float64}, Ref{Float64}, Ref{Int32}, Ref{Float64}, Ref{Int32},
+		Ref{Int32}, Ref{Int32}, Ref{Int32}, Ref{Int32}, Ref{Float64}, Ref{Float64}, 
+		Ref{Int32}, Ref{Float64}, Ref{Float64}, Ref{Int32}, Ref{Float64}, 
+		Ref{Float64}, Ref{Int32}, Ref{Float64}, Ref{Int32}),
+		X, Y, sort, rw, npd, 
+		ntot, nadj, madj, ind, tx, ty, 
+		ilist, epsilon, delsgs, ndel, delsum, 
+		dirsgs, ndir, dirsum, nerror
+		)
+
+		@error_handling
+	end
 
 	@finalize
 
