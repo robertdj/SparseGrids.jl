@@ -1,14 +1,4 @@
 @doc """
-	l2dist(x1, y1, x2, y2)
-
-The `l2` distance between `(x1,y1)` and `(x2,y2)`.
-"""->
-function l2dist(x1::Real, y1::Real, x2::Real, y2::Real)
-	l2squared = (x1-x2)^2 + (y1-y2)^2
-	return sqrt( l2squared )
-end
-
-@doc """
 	voronoiarea(x::Vector, y::Vector; args...) -> Vector
 
 Compute the area of each Voronoi cell of the generators `(x[i],y[i])` in the vectors `x` and `y`.
@@ -16,7 +6,7 @@ Compute the area of each Voronoi cell of the generators `(x[i],y[i])` in the vec
 The optional arguments are passed to `deldir`.
 """->
 function voronoiarea(x::Vector, y::Vector; args...)
-	raw = rawdeldir(x,y; args...)
+	raw = deldirwrapper(x,y; args...)
 
 	return raw.summary[:,7]
 end
@@ -81,14 +71,27 @@ function voronoiedges(D::DelDir)
 	return x, y
 end
 
+# I am reluctant to export this function as it depends on a plotting package
 #=
 @doc """
+	plot(D::DelDir)
+
+Plot the generators, its Delaunay triangulation and Voronoi tesselation.
 """->
 function Winston.plot(D::DelDir)
 	Dx, Dy = delaunayedges(D)
 	Vx, Vy = voronoiedges(D)
 
+	plot(D.summary[:x], D.summary[:y], "o")
 	oplot(Vx, Vy, "r--")
 	oplot(Dx, Dy)
+
+	xmin = min( minimum(D.vorsgs[:x1]), minimum(D.vorsgs[:x2]) )
+	xmax = max( maximum(D.vorsgs[:x1]), maximum(D.vorsgs[:x2]) )
+	xlim(xmin, xmax)
+
+	ymin = min( minimum(D.vorsgs[:y1]), minimum(D.vorsgs[:y2]) )
+	ymax = max( maximum(D.vorsgs[:y1]), maximum(D.vorsgs[:y2]) )
+	ylim(ymin, ymax)
 end
 =#
