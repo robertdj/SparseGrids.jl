@@ -18,7 +18,7 @@ D = deldir(x, y)
 
 The output from `deldir` is a struct with three DataFrames, one for the topology of the Delaunay triangulation, one for topology of the Voronoi tesselation and a summary mainly related to the area of the triangles and Voronoi cells.
 
-By default, `deldir` works with points in the unit rectangle, but other bounding rectangles can be specified as optional arguments.
+By default, `deldir` works with points in the unit rectangle, but other bounding rectangles can be specified as an optional argument.
 
 The area of the Voronoi cells are also available directly with the function `voronoiarea`.
 
@@ -45,16 +45,22 @@ One realization looks like the following.
 
 ## Installation
 
-I plan to register the package soon and then 
+Hopefully, this package will be registered soon and then
 
 ```julia
 Pkg.add("Deldir")
 ```
 
 installs the package. 
-As mentioned, this package is a wrapper for a Fortran library and if it is not compiled automatically, you must run the `build.jl` script in the `deps` folder.
+For now, use 
 
-Compilation is performed with `gfortran` and I have only tested this on OS X Yosemite and Linux Mint.
+```julia
+Pkg.clone("https://github.com/robertdj/Deldir.jl")
+```
+
+As mentioned, this package is a wrapper for a Fortran library and if it this not compiled automatically, you must run the `build.jl` script in the `deps` folder.
+
+Compilation is performed with `gfortran` and I have only tested this on OS X Yosemite and Linux Mint with Julia v0.4.
 
 
 ## Motivation
@@ -62,7 +68,7 @@ Compilation is performed with `gfortran` and I have only tested this on OS X Yos
 This is not the only Julia package for Delaunay/Voronoi computations.
 I am aware of the pure Julia implementation [VoronoiDelaunay](https://github.com/JuliaGeometry/VoronoiDelaunay.jl) and the Boost wrapper [Voronoi](https://github.com/Voxel8/Voronoi.jl).
 
-However, `deldir` has two qualities that I value:
+However, Deldir has two qualities that I value:
 
 - It interacts well with the bounding box.
 - It returns the area of the Voronoi cells *in the same order as the input generators*.

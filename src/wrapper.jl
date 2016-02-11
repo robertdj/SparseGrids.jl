@@ -140,12 +140,12 @@ macro finalize()
 end
 
 @doc """
-	rawdeldir(x::Vector{Float64}, y::Vector{Float64}; ...)
+	deldirwrapper(x::Vector{Float64}, y::Vector{Float64}; ...)
 
 Wrapper for the Fortran code that returns the output rather undigested.
 Only intended for in-package calls!
 """->
-function rawdeldir(x::Vector{Float64}, y::Vector{Float64}; 
+function deldirwrapper(x::Vector{Float64}, y::Vector{Float64}; 
 	rw::Vector=[0.0;1.0;0.0;1.0], epsilon::Float64=1e-9)
 
 	@assert length(x) == length(y) "Coordinate vectors must be of equal length"
@@ -213,7 +213,7 @@ Likewise for the `bp2` entry and the second endpoint of the edge.
 - The `vor_area` entry is the area of the Voronoi cell surrounding the point.
 """->
 function deldir(x::Vector{Float64}, y::Vector{Float64}; args...)
-	raw = rawdeldir(x,y; args...)
+	raw = deldirwrapper(x,y; args...)
 
 	delsgs = DataFrame()
 	delsgs[:x1]   = raw.delsgs[:,1]
