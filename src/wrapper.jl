@@ -1,8 +1,16 @@
-# TODO: A `show` command for this type?
 type DelDir
 	delsgs::DataFrame
 	vorsgs::DataFrame
 	summary::DataFrame
+end
+
+function Base.show(io::IO, D::DelDir)
+	println("Delaunay topology, delsgs:")
+	show(io, D.delsgs)
+	println("\n\nVoronoi topology, vorsgs:")
+	show(io, D.vorsgs)
+	println("\n\nArea summary:")
+	show(io, D.summary)
 end
 
 type DelDirRaw
@@ -45,7 +53,6 @@ macro initialize()
 		# The total number of points
 		ntot = npd + 4
 
-		# TODO: Not very efficient...
 		X = [zeros(4); x; zeros(4)]
 		Y = [zeros(4); y; zeros(4)]
 
@@ -108,13 +115,13 @@ macro error_handling()
 			tadj = (madj+1)*(ntot+4)
 			ndel = max( ndel, div(madj*(madj+1),2) )
 			tdel = 6*ndel[]
-			ndir = ndel
+			ndir = copy(ndel)
 			tdir = 8*ndir[]
 			@allocate
 		elseif nerror[] == 14 || nerror[] == 15
 			ndel = ceil(Int32, 1.2*ndel)
 			tdel = 6*ndel[]
-			ndir = ndel
+			ndir = copy(ndel)
 			tdir = 8*ndir[]
 			@allocate
 		elseif nerror[] > 1
@@ -130,9 +137,10 @@ Process output from the deldir Fortran routine
 """->
 macro finalize()
 	esc(quote
-		# TODO: slice instead of reshape?
-		delsgs = reshape(delsgs, 6, div(tdel,6))'
-		dirsgs = reshape(dirsgs, 8, div(tdir,8))'
+		num_del = Int64(ndel[])
+		delsgs = reshape(delsgs[1:6*num_del], 6, num_del)'
+		num_dir = Int64(ndir[])
+		dirsgs = reshape(dirsgs[1:8*num_dir], 8, num_dir)'
 		delsum = reshape(delsum, npd, 4)
 		dirsum = reshape(dirsum, npd, 3)
 		allsum = [delsum dirsum]
@@ -173,7 +181,7 @@ function deldirwrapper(x::Vector{Float64}, y::Vector{Float64};
 
 	@finalize
 
-	return DelDirRaw( delsgs[1:ndel[],:], dirsgs[1:ndir[],:], allsum )
+	return DelDirRaw( delsgs, dirsgs, allsum )
 end
 
 @doc """

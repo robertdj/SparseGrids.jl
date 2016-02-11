@@ -87,11 +87,11 @@ function Winston.plot(D::DelDir)
 	oplot(Dx, Dy)
 
 	xmin = min( minimum(D.vorsgs[:x1]), minimum(D.vorsgs[:x2]) )
-	xmin = max( maximum(D.vorsgs[:x1]), maximum(D.vorsgs[:x2]) )
+	xmax = max( maximum(D.vorsgs[:x1]), maximum(D.vorsgs[:x2]) )
 	xlim(xmin, xmax)
 
 	ymin = min( minimum(D.vorsgs[:y1]), minimum(D.vorsgs[:y2]) )
-	ymin = max( maximum(D.vorsgs[:y1]), maximum(D.vorsgs[:y2]) )
+	ymax = max( maximum(D.vorsgs[:y1]), maximum(D.vorsgs[:y2]) )
 	ylim(ymin, ymax)
 end
 =#
