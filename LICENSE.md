@@ -1,4 +1,4 @@
-The deldir.jl package is licensed under the MIT "Expat" License:
+The Deldir.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2016: Robert DJ.
 >
@@ -20,3 +20,5 @@ The deldir.jl package is licensed under the MIT "Expat" License:
 > CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 > TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 > SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+> NOTE: The Fortran files are *not* part of this license -- see the README file for more info
