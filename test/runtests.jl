@@ -1,5 +1,11 @@
-using deldir
+using Deldir
 using Base.Test
 
 # write your own tests here
-@test 1 == 1
+N = 100
+x = rand(N)
+y = rand(N)
+
+A = voronoiarea(x, y)
+@test_approx_eq sum(A) 1
+
