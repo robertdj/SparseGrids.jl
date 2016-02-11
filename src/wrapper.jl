@@ -1,6 +1,3 @@
-const libdeldir = "/Library/Frameworks/R.framework/Versions/3.2/Resources/library/deldir/libs/deldir.so"
-#= const libdeldir = expanduser("~/R/x86_64-pc-linux-gnu-library/3.0/deldir/libs/deldir.so") =#
-
 # TODO: A `show` command for this type?
 type DelDir
 	delsgs::DataFrame
@@ -48,6 +45,7 @@ macro initialize()
 		# The total number of points
 		ntot = npd + 4
 
+		# TODO: Not very efficient...
 		X = [zeros(4); x; zeros(4)]
 		Y = [zeros(4); y; zeros(4)]
 
@@ -60,7 +58,7 @@ macro initialize()
 		tadj = (madj+1)*(ntot+4)
 		ndel = Int32[ madj*(madj+1)/2 ]
 		tdel = 6*ndel[]
-		ndir = ndel
+		ndir = copy(ndel)
 		tdir = 8*ndir[]
 
 		nadj   = zeros(Int32, tadj)
@@ -119,9 +117,6 @@ macro error_handling()
 			ndir = ndel
 			tdir = 8*ndir[]
 			@allocate
-		#= elseif nerror[] < 0 =#
-		#= 	break =#
-		#= else =#
 		elseif nerror[] > 1
 			error("From `deldir` Fortran, nerror = ", nerror[])
 		end
@@ -140,9 +135,7 @@ macro finalize()
 		dirsgs = reshape(dirsgs, 8, div(tdir,8))'
 		delsum = reshape(delsum, npd, 4)
 		dirsum = reshape(dirsum, npd, 3)
-		#= allsum = [delsum delsum[:,4]/sum(delsum[:,4]) dirsum dirsum[:,3]/sum(dirsum[:,3])] =#
 		allsum = [delsum dirsum]
-
 	end)
 end
 
@@ -199,16 +192,19 @@ By default, `epsilon = 1e-9`.
 The output is a struct with three `DataFrame`s:
 
 ###### `delsgs`
+
 - The `x1`, `y1`, `x2` & `y2` entires are the coordinates of the points joined by an edge of a Delaunay triangle.
 - The `ind1` and `ind2` entries are the indices of the two points which are joined.
 
 ###### `vorsgs`
+
 - The `x1`, `y1`, `x2` & `y2` entires are the coordinates of the endpoints of one the edges of a Voronoi cell.
 - The `ind1` and `ind2` entries are the indices of the two points, in the set being triangulated, which are separated by that edge
 - The `bp1` entry indicates whether the first endpoint of the corresponding edge of a Voronoi cell is a boundary point (a point on the boundary of the rectangular window). 
 Likewise for the `bp2` entry and the second endpoint of the edge.
 
 ###### `summary`
+
 - The `x` and `y` entries of each row are the coordinates of the points in the set being triangulated.
 - The `ntri` entry are the number of Delaunay triangles emanating from the point.
 - The `del_area` entry is `1/3` of the total area of all the Delaunay triangles emanating from the point.
@@ -220,31 +216,32 @@ function deldir(x::Vector{Float64}, y::Vector{Float64}; args...)
 	raw = rawdeldir(x,y; args...)
 
 	delsgs = DataFrame()
-	delsgs[:x1] = raw.delsgs[:,1]
-	delsgs[:y1] = raw.delsgs[:,2]
-	delsgs[:x2] = raw.delsgs[:,3]
-	delsgs[:y2] = raw.delsgs[:,4]
+	delsgs[:x1]   = raw.delsgs[:,1]
+	delsgs[:y1]   = raw.delsgs[:,2]
+	delsgs[:x2]   = raw.delsgs[:,3]
+	delsgs[:y2]   = raw.delsgs[:,4]
 	delsgs[:ind1] = round(Int64,raw.delsgs[:,5])
 	delsgs[:ind2] = round(Int64,raw.delsgs[:,6])
 
 	vorsgs = DataFrame()
-	vorsgs[:x1] = raw.vorsgs[:,1]
-	vorsgs[:y1] = raw.vorsgs[:,2]
-	vorsgs[:x2] = raw.vorsgs[:,3]
-	vorsgs[:y2] = raw.vorsgs[:,4]
+	vorsgs[:x1]   = raw.vorsgs[:,1]
+	vorsgs[:y1]   = raw.vorsgs[:,2]
+	vorsgs[:x2]   = raw.vorsgs[:,3]
+	vorsgs[:y2]   = raw.vorsgs[:,4]
 	vorsgs[:ind1] = round(Int64,raw.vorsgs[:,5])
 	vorsgs[:ind2] = round(Int64,raw.vorsgs[:,6])
-	vorsgs[:bp1] = raw.vorsgs[:,7] .== 1
-	vorsgs[:bp2] = raw.vorsgs[:,8] .== 1
+	vorsgs[:bp1]  = raw.vorsgs[:,7] .== 1
+	vorsgs[:bp2]  = raw.vorsgs[:,8] .== 1
 
 	summary = DataFrame()
-	summary[:x] = raw.summary[:,1]
-	summary[:y] = raw.summary[:,2]
-	summary[:ntri] = round(Int64,raw.summary[:,3])
+	summary[:x]        = raw.summary[:,1]
+	summary[:y]        = raw.summary[:,2]
+	summary[:ntri]     = round(Int64,raw.summary[:,3])
 	summary[:del_area] = raw.summary[:,4]
-	summary[:n_tside] = round(Int64,raw.summary[:,5])
-	summary[:nbpt] = round(Int64,raw.summary[:,6])
+	summary[:n_tside]  = round(Int64,raw.summary[:,5])
+	summary[:nbpt]     = round(Int64,raw.summary[:,6])
 	summary[:vor_area] = raw.summary[:,7]
 
 	return DelDir( delsgs, vorsgs, summary )
 end
+
