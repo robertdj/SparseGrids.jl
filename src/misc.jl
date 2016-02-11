@@ -84,6 +84,11 @@ end
 #=
 @doc """
 """->
-function plot(D::DelDir)
+function Winston.plot(D::DelDir)
+	Dx, Dy = delaunayedges(D)
+	Vx, Vy = voronoiedges(D)
+
+	oplot(Vx, Vy, "r--")
+	oplot(Dx, Dy)
 end
 =#
