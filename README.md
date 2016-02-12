@@ -22,7 +22,7 @@ By default, `deldir` works with points in the unit rectangle, but other bounding
 
 The area of the Voronoi cells are also available directly with the function `voronoiarea`.
 
-Two functions are available to extract the Delaunay triangles and Voronoi cells in a "plot friendly" manner:
+Two functions are available to extract the edges of the Delaunay triangles and Voronoi cells in a "plot friendly" manner:
 
 ```julia
 Dx, Dy = delaunayedges(D)
@@ -58,7 +58,7 @@ For now, use
 Pkg.clone("https://github.com/robertdj/Deldir.jl")
 ```
 
-As mentioned, this package is a wrapper for a Fortran library and if it this not compiled automatically, you must run the `build.jl` script in the `deps` folder.
+As mentioned, this package is a wrapper for a Fortran library and if this is not compiled automatically, you must run the `build.jl` script in the `deps` folder.
 
 Compilation is performed with `gfortran` and I have only tested this on OS X Yosemite and Linux Mint with Julia v0.4.
 

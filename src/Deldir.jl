@@ -2,7 +2,7 @@ module Deldir
 
 using DataFrames
 
-const libdeldir = joinpath(Pkg.dir("Deldir"), "deps", "deldir.so")
+const libdeldir = joinpath(dirname(@__FILE__), "..", "deps", "deldir.so")
 
 export
 	# Type

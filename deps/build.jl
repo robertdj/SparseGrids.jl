@@ -1,4 +1,4 @@
-deps_dir = joinpath(Pkg.dir("Deldir"), "deps")
+deps_dir = dirname(@__FILE__)
 cd(joinpath(deps_dir, "Fortran"))
 
 fortran_files = ["acchk", "addpt", "adjchk", "binsrt", "circen", "cross", "delet", "delet1", "delout", "delseg", "dirout", "dirseg", "dldins", "initad", "insrt", "insrt1", "intri", "locn", "master", "mnnd", "pred", "qtest", "qtest1", "stoke", "succ", "swap", "testeq", "triar", "trifnd"]
