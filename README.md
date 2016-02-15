@@ -45,17 +45,10 @@ One realization looks like the following.
 
 ## Installation
 
-Hopefully, this package will be registered soon and then
+Install the package by running
 
 ```julia
 Pkg.add("Deldir")
-```
-
-installs the package. 
-For now, use 
-
-```julia
-Pkg.clone("https://github.com/robertdj/Deldir.jl")
 ```
 
 As mentioned, this package is a wrapper for a Fortran library and if this is not compiled automatically, you must run the `build.jl` script in the `deps` folder.
