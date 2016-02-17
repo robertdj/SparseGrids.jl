@@ -5,7 +5,10 @@ Return the Konrod-Patterson `nodes` and `weights` of accuracy `D` as vectors.
 """->
 function kpn( D::Int )
 	@assert 1 <= D <= 25 "Accuracy must be between 1 and 25"
-	return KPN_nodes[D], KPN_weights[D]
+
+	# The KPN nodes at sparse-grids.de is for the standard Gaussian density
+	# I'm using exp(-x^2)
+	return KPN_nodes[D]/sqrt(2), sqrt(pi)*KPN_weights[D]
 end
 
 const KPN_nodes = Dict(

@@ -2,13 +2,14 @@
 	sparsegrid( D::Int, order::Int; f::Function=gausshermite, sym::Bool=true )
 
 Computation of sparse grid nodes and the associated weights
-`D` : Dimension of integrant
-`k` : Order of quadrature rule
-`f` : Function generating 1D nodes and weights -- in that order
-`sym` : Boolean variable determining if the nodes should be symmetrized
 
-If the nodes are supposed to be symmetric (as those in the Gauss-Hermite rule), 
-they should be so in order to correctly identify multiply occuring nodes in the 
+- `D` : Dimension of integrant
+- `k` : Order of quadrature rule
+- `f` : Function generating 1D nodes and weights -- in that order
+- `sym` : Boolean variable determining if the nodes should be symmetrized
+
+If the nodes are supposed to be symmetric (as those in the Gauss-Hermite rule),
+they should be so in order to correctly identify multiply occuring nodes in the
 union of sparse sets
 """->
 function sparsegrid( D::Int, order::Int; f::Function=gausshermite, sym::Bool=true )
@@ -150,10 +151,10 @@ end
 
 
 @doc """
-	combvec( vecs::Array{Any} )
+	combvec( vecs::Array{Any} ) -> Matrix
 
 Counterpart of Matlab's combvec: 
-Creates all combinations of vectors. These are passed as a cell of vectors Uses the Iterators package
+Creates all combinations of vectors in `vecs`.
 """->
 function combvec( vecs::Array{Any} )
 	# Construct all Cartesian combinations of elements in vec as tuples
