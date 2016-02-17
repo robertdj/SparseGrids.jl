@@ -4,6 +4,7 @@ import FastGaussQuadrature: gausshermite
 import Iterators: collect, product
 
 include("grids.jl")
+include("nested.jl")
 
 # package code goes here
 export
@@ -11,7 +12,8 @@ export
 	tensorgrid,
 	listNdq,
 	combvec,
-	symmetrize!
+	symmetrize!,
+	kpn
 
 end # module
 

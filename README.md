@@ -5,38 +5,44 @@
 This package computes sparse grids for quadrature rules used to compute multidimensional integrals.
 
 
-## Installation ##
+## Installation
 
-Run 
+In Julia, run 
 
-	Pkg.add("SparseGrids")
-
-The sparse grid computation depends on the [Iterators](https://github.com/JuliaLang/Iterators.jl) package.
-
-The default procedure for generating the required 1 dimensional quadratures schemes uses the [FastGaussQuadrature](https://github.com/ajt60gaibb/FastGaussQuadrature.jl) package.
+```julia
+Pkg.add("SparseGrids")
+```
 
 
-## Usage ##
+## Usage
 
-The procedure for calculating the quadrature nodes and points is called `sparsegrid` .
-It requires as arguments the dimension of the integrant and either cells with 1 dimensional nodes and weights or the order of the quadrature scheme from which the required nodes and weights are computed -- currently using the Gauss-Hermite scheme:
+From one-dimensional nodes `n` and weights `w`, the function `sparsegrid` computes the sparse extension to `D` dimensions:
 
-	nodes, weigths = sparsegrid(D, order)
+```julia
+nodes, weigths = sparsegrid(D, n, w)
+```
 
-If `func` is a function of `D` variables with real output, the integral of `func*Gaussian` over `R^D` can be computed/approximated by
+Both `n` and `w` should be *cells* of nodes/weigths up to the desired order of the quadrature rule.
 
-	dot( func(nodes), weights )
+A variant of `sparsegrid` uses "known" nodes for computing integrals over `R^D` with integrants of the form `f(x) * exp(-|x|^2)`.
+This kind of integral can be approximated with the Gauss-Hermite nodes or the Kronrod-Patterson nodes.
+The Kronrod-Patterson nodes are *nested*, reducing the number of nodes in higher dimensions compared to the Gauss-Hermite nodes.
 
-See also the scripts in the `test` folder.
+To approximate the integral, compute
+```julia
+dot( weigths, f(nodes) )
+```
+
+Note that when integrating against `exp(-|x|^2)` instead of the standard Gaussian density, the nodes and weigths are rescaled compared to e.g. the source of the Kronrod-Patterson nodes.
 
 
-## Acknowledgements ##
+## References
 
 The sparse grid quadrature rules are described in e.g.
 
 * Thomas Gerstner, Michael Griebel, "Numerical integration using sparse grids", Numerical Algorithms, 1998, 209--232.
 DOI: [10.1023/A:1019129717644](http://dx.doi.org/10.1023/A:1019129717644)
-* Florian Heiss, Victor Winschel, "Likelihood approximation by numerical integration on sparse grids", Journal of Econometrics, 2008, 144, 62--80.
+* Florian Heiss, Victor Winschel, "Likelihood approximation by numerical integration on sparse grids", Journal of Econometrics, 2008, vol. 144, pp. 62--80.
 DOI: [10.1016/j.jeconom.2007.12.004](http://dx.doi.org/10.1016/j.jeconom.2007.12.004)
 * Vesa Kaarnioja, "[Smolyak Quadrature](http://hdl.handle.net/10138/40159)", Master's thesis, University of Helsinki, 2013.
 
@@ -46,12 +52,12 @@ Note that there are some disagreements between these Matlab scripts and the pape
 
 The algorithm for computing the integer D-vectors with constant 1-norm is found in e.g. Kaarnioja's thesis as Algorithm 1.11.
 
+The nested nodes are obtained from the sparse-grids web page.
 
-## ToDos ##
+## ToDos
 
-Sparse grids generated with nested quadrature rules have less points in higher dimensions. 
-This may be implemented later with the methods from e.g.
+At some point methods for *computing* nested nodes may be implemented using techniques from e.g.
 
-* Sanjay Mehrotra, David Papp; "Generating nested quadrature formulas for general weight functions with known moments"
+* Sanjay Mehrotra, David Papp, "Generating nested quadrature formulas for general weight functions with known moments"
 arXiv: [1203.1554 [math.NA]](http://arxiv.org/abs/1203.1554v1)
 
