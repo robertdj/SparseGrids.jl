@@ -1,18 +1,18 @@
 @doc """
-	sparsegrid( D::Int, order::Int; f::Function=gausshermite, sym::Bool=true )
+	sparsegrid( D::Int, order::Int, f::Function=gausshermite; sym::Bool=true )
 
 Computation of sparse grid nodes and the associated weights
 
 - `D` : Dimension of integrant
 - `k` : Order of quadrature rule
-- `f` : Function generating 1D nodes and weights -- in that order
+- `f` : Function generating 1D nodes and weights -- in that order -- for an integer input
 - `sym` : Boolean variable determining if the nodes should be symmetrized
 
 If the nodes are supposed to be symmetric (as those in the Gauss-Hermite rule),
 they should be so in order to correctly identify multiply occuring nodes in the
 union of sparse sets
 """->
-function sparsegrid( D::Int, order::Int; f::Function=gausshermite, sym::Bool=true )
+function sparsegrid( D::Int, order::Int, f::Function=gausshermite; sym::Bool=true )
 	# Final nodes and weights in D dimensions
 	nodes = Array(Float64, D, 0)
 	weights = Array(Float64, 0)
@@ -226,8 +226,8 @@ end
 	Compute tensor grid of `N` nodes and corresponding weights `W` for `D` dimensions.
 """->
 function tensorgrid( N::Vector, W::Vector, D::Int )
-	NN = repeat( Any[N], outer=[D 1] )
-	WW = repeat( Any[W], outer=[D 1] )
+	NN = repeat( Any[N], outer=[D; 1] )
+	WW = repeat( Any[W], outer=[D; 1] )
 
 	tensorN = combvec( NN )
 	tensorW = vec(prod( combvec(WW), 1 ))

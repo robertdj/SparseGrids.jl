@@ -1,6 +1,6 @@
 # Sparsegrids
 
-[![Build Status](https://travis-ci.org/robertdj/Sparsegrids.jl.svg?branch=master)](https://travis-ci.org/robertdj/SparseGrids.jl)
+[![Build Status](https://travis-ci.org/robertdj/SparseGrids.jl.svg?branch=master)](https://travis-ci.org/robertdj/SparseGrids.jl)
 
 This package computes sparse grids for quadrature rules used to compute multidimensional integrals.
 
@@ -16,24 +16,27 @@ Pkg.add("SparseGrids")
 
 ## Usage
 
-From one-dimensional nodes `n` and weights `w`, the function `sparsegrid` computes the sparse extension to `D` dimensions:
+If `f` is a function that returns `nodes, weights = f(n)`, for any (integer) order `n`, then the function `sparsegrid` computes the sparse extension to `D` dimensions of order `O`:
 
 ```julia
-nodes, weigths = sparsegrid(D, n, w)
+nodes, weigths = sparsegrid(D, O, f)
 ```
 
-Both `n` and `w` should be *cells* of nodes/weigths up to the desired order of the quadrature rule.
+By default, `f` is `gausshermite` from the [FastGaussQuadrature](https://github.com/ajt60gaibb/FastGaussQuadrature.jl) package.
+The `gausshermite` quadrature rule is used for computing integrals over `R^D` with integrants of the form `g(x) * exp(-|x|^2)`.
+To approximate such an integral, compute
 
-A variant of `sparsegrid` uses "known" nodes for computing integrals over `R^D` with integrants of the form `f(x) * exp(-|x|^2)`.
-This kind of integral can be approximated with the Gauss-Hermite nodes or the Kronrod-Patterson nodes.
-The Kronrod-Patterson nodes are *nested*, reducing the number of nodes in higher dimensions compared to the Gauss-Hermite nodes.
-
-To approximate the integral, compute
 ```julia
-dot( weigths, f(nodes) )
+dot( weigths, g(nodes) )
 ```
 
-Note that when integrating against `exp(-|x|^2)` instead of the standard Gaussian density, the nodes and weigths are rescaled compared to e.g. the source of the Kronrod-Patterson nodes.
+Note that when integrating against `exp(-|x|^2)` instead of the standard Gaussian density, the nodes and weigths are rescaled compared to e.g. the source of the Kronrod-Patterson nodes mentioned below.
+
+This package offers another node generating function for "Gaussian" integrals, `kpn`, for the *nested* Kronrod-Patterson nodes.
+When the 1D nodes are nested, the higher dimensional sparse grids contain fewer points.
+
+The easy extension of 1D nodes (where the number of nodes also grows *much* faster) is by tensor products.
+This is available by the function `tensorgrid` that takes the same inputs as `sparsegrid`.
 
 
 ## References
