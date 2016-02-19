@@ -49,7 +49,7 @@ M = size(P, 2)
 
 for generator = [FastGaussQuadrature.gausshermite, kpn]
 	# Quadrature points and weights
-	N, W = sparsegrid( D, order; f=generator )
+	N, W = sparsegrid( D, order, generator )
 
 	# Maximum degree for which the generator gives correct results
 	generator == FastGaussQuadrature.gausshermite ?  max_degree = 2*order-1 : max_degree = D*order
