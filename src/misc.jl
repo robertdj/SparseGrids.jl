@@ -6,9 +6,9 @@ Compute the area of each Voronoi cell of the generators `(x[i],y[i])` in the vec
 The optional arguments are passed to `deldir`.
 """->
 function voronoiarea(x::Vector, y::Vector; args...)
-	raw = deldirwrapper(x,y; args...)
+	summary = deldirwrapper(x,y; args...)[3]
 
-	return raw.summary[:,7]
+	return summary[:,7]
 end
 
 @doc """
@@ -71,14 +71,14 @@ function voronoiedges(D::DelDir)
 	return x, y
 end
 
-# I am reluctant to export this function as it depends on a plotting package
 #=
+# I am reluctant to export this function as it depends on a plotting package
 @doc """
 	plot(D::DelDir)
 
 Plot the generators, its Delaunay triangulation and Voronoi tesselation.
 """->
-function Winston.plot(D::DelDir)
+function plot(D::DelDir)
 	Dx, Dy = delaunayedges(D)
 	Vx, Vy = voronoiedges(D)
 

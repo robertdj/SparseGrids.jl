@@ -13,12 +13,6 @@ function Base.show(io::IO, D::DelDir)
 	show(io, D.summary)
 end
 
-type DelDirRaw
-	delsgs::Matrix{Float64}
-	vorsgs::Matrix{Float64}
-	summary::Matrix{Float64}
-end
-
 @doc """
 	remove_duplicates(x::Vector, y::Vector)
 
@@ -181,7 +175,7 @@ function deldirwrapper(x::Vector{Float64}, y::Vector{Float64};
 
 	@finalize
 
-	return DelDirRaw( delsgs, dirsgs, allsum )
+	return delsgs, dirsgs, allsum
 end
 
 @doc """
@@ -221,34 +215,34 @@ Likewise for the `bp2` entry and the second endpoint of the edge.
 - The `vor_area` entry is the area of the Voronoi cell surrounding the point.
 """->
 function deldir(x::Vector{Float64}, y::Vector{Float64}; args...)
-	raw = deldirwrapper(x,y; args...)
+	del, vor, sum = deldirwrapper(x,y; args...)
 
 	delsgs = DataFrame()
-	delsgs[:x1]   = raw.delsgs[:,1]
-	delsgs[:y1]   = raw.delsgs[:,2]
-	delsgs[:x2]   = raw.delsgs[:,3]
-	delsgs[:y2]   = raw.delsgs[:,4]
-	delsgs[:ind1] = round(Int64,raw.delsgs[:,5])
-	delsgs[:ind2] = round(Int64,raw.delsgs[:,6])
+	delsgs[:x1]   = del[:,1]
+	delsgs[:y1]   = del[:,2]
+	delsgs[:x2]   = del[:,3]
+	delsgs[:y2]   = del[:,4]
+	delsgs[:ind1] = round(Integer,del[:,5])
+	delsgs[:ind2] = round(Integer,del[:,6])
 
 	vorsgs = DataFrame()
-	vorsgs[:x1]   = raw.vorsgs[:,1]
-	vorsgs[:y1]   = raw.vorsgs[:,2]
-	vorsgs[:x2]   = raw.vorsgs[:,3]
-	vorsgs[:y2]   = raw.vorsgs[:,4]
-	vorsgs[:ind1] = round(Int64,raw.vorsgs[:,5])
-	vorsgs[:ind2] = round(Int64,raw.vorsgs[:,6])
-	vorsgs[:bp1]  = raw.vorsgs[:,7] .== 1
-	vorsgs[:bp2]  = raw.vorsgs[:,8] .== 1
+	vorsgs[:x1]   = vor[:,1]
+	vorsgs[:y1]   = vor[:,2]
+	vorsgs[:x2]   = vor[:,3]
+	vorsgs[:y2]   = vor[:,4]
+	vorsgs[:ind1] = round(Integer,vor[:,5])
+	vorsgs[:ind2] = round(Integer,vor[:,6])
+	vorsgs[:bp1]  = vor[:,7] .== 1
+	vorsgs[:bp2]  = vor[:,8] .== 1
 
 	summary = DataFrame()
-	summary[:x]        = raw.summary[:,1]
-	summary[:y]        = raw.summary[:,2]
-	summary[:ntri]     = round(Int64,raw.summary[:,3])
-	summary[:del_area] = raw.summary[:,4]
-	summary[:n_tside]  = round(Int64,raw.summary[:,5])
-	summary[:nbpt]     = round(Int64,raw.summary[:,6])
-	summary[:vor_area] = raw.summary[:,7]
+	summary[:x]        = sum[:,1]
+	summary[:y]        = sum[:,2]
+	summary[:ntri]     = round(Integer,sum[:,3])
+	summary[:del_area] = sum[:,4]
+	summary[:n_tside]  = round(Integer,sum[:,5])
+	summary[:nbpt]     = round(Integer,sum[:,6])
+	summary[:vor_area] = sum[:,7]
 
 	return DelDir( delsgs, vorsgs, summary )
 end
