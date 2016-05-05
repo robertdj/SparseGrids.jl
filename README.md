@@ -51,7 +51,7 @@ Install the package by running
 Pkg.add("Deldir")
 ```
 
-As mentioned, this package is a wrapper for a Fortran library and if this is not compiled automatically, you must run the `build.jl` script in the `deps` folder.
+As mentioned, this package is a wrapper for a Fortran library and if the Fortran code is not compiled automatically, you must run the `build.jl` script in the `deps` folder.
 
 Compilation is performed with `gfortran` and I have only tested this on OS X Yosemite and Linux Mint with Julia v0.4.
 
@@ -65,6 +65,30 @@ However, Deldir has two qualities that I value:
 
 - It interacts well with the bounding box.
 - It returns the area of the Voronoi cells *in the same order as the input generators*.
+
+
+**Update 2016-05-05**: 
+I have made the pure Julia package [VoronoiCells](https://github.com/robertdj/VoronoiCells.jl) with similar functionalities that executes *much* faster.
+Consider the time taken to run the `voronoiarea` functions of both packages with an increasing number of points:
+
+![Comparison of Deldir and VoronoiCells](comparison.png)
+
+The script generating this output is available in the `examples` folder.
+The comparison plot is made with
+
+```julia
+julia> versioninfo()
+Julia Version 0.4.0
+Commit 0ff703b (2015-10-08 06:20 UTC)
+Platform Info:
+  System: Darwin (x86_64-apple-darwin14.5.0)
+  CPU: Intel(R) Core(TM)2 Duo CPU     P7350  @ 2.00GHz
+  WORD_SIZE: 64
+  BLAS: libopenblas (USE64BITINT DYNAMIC_ARCH NO_AFFINITY Penryn)
+  LAPACK: libopenblas64_
+  LIBM: libopenlibm
+  LLVM: libLLVM-3.3
+```
 
 
 ## Limitations

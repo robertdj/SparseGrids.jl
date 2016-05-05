@@ -1,3 +1,7 @@
+# Disclaimer: The macros initialize, error_handling and finalize use variable 
+# names that are copied verbatim from the R package. 
+
+
 type DelDir
 	delsgs::DataFrame
 	vorsgs::DataFrame
@@ -34,7 +38,7 @@ macro initialize()
 	esc(quote
 		# According to the documentation in the R package: 
 		# "'sort' would get used only in a de-bugging process"
-		# Therefore it is not an argument to this function
+		# Therefore it is not an argument to the wrapper
 		sort = 1
 
 		x, y = remove_duplicates(x,y)
@@ -137,7 +141,7 @@ macro finalize()
 		dirsgs = reshape(dirsgs[1:8*num_dir], 8, num_dir)'
 		delsum = reshape(delsum, npd, 4)
 		dirsum = reshape(dirsum, npd, 3)
-		allsum = [delsum dirsum]
+		allsum = hcat(delsum, dirsum)
 	end)
 end
 
@@ -145,7 +149,6 @@ end
 	deldirwrapper(x::Vector{Float64}, y::Vector{Float64}; ...)
 
 Wrapper for the Fortran code that returns the output rather undigested.
-Only intended for in-package calls!
 """->
 function deldirwrapper(x::Vector{Float64}, y::Vector{Float64}; 
 	rw::Vector=[0.0;1.0;0.0;1.0], epsilon::Float64=1e-9)
