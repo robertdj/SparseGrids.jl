@@ -81,10 +81,10 @@ julia> versioninfo()
 Julia Version 0.4.0
 Commit 0ff703b (2015-10-08 06:20 UTC)
 Platform Info:
-  System: Darwin (x86_64-apple-darwin14.5.0)
-  CPU: Intel(R) Core(TM)2 Duo CPU     P7350  @ 2.00GHz
+  System: Linux (x86_64-linux-gnu)
+  CPU: Intel(R) Core(TM) i7-3720QM CPU @ 2.60GHz
   WORD_SIZE: 64
-  BLAS: libopenblas (USE64BITINT DYNAMIC_ARCH NO_AFFINITY Penryn)
+  BLAS: libopenblas (USE64BITINT DYNAMIC_ARCH NO_AFFINITY Sandybridge)
   LAPACK: libopenblas64_
   LIBM: libopenlibm
   LLVM: libLLVM-3.3

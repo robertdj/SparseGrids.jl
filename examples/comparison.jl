@@ -3,8 +3,8 @@ import Deldir: voronoiarea
 
 # Number of generators: Deldir does not go all the way
 Nsmall = [1000; 2000:2000:30_000]
-Nbig = [30_000:10_000:100_000]
-N = unique( vcat(Nsmall, Nbig) )
+Nbig = [40_000:10_000:100_000]
+N = vcat(Nsmall, Nbig)
 
 VCtime = Array{Float64}( length(N) )
 Dtime = similar(VCtime)
