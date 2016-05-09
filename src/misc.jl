@@ -23,7 +23,7 @@ function delaunayedges(D::DelDir)
 	y2 = D.delsgs[:y2]
 
 	Ndel = size(D.delsgs,1)
-	x = Array(Float64, 3*Ndel)
+	x = Array{Float64}(3*Ndel)
 	y = similar(x)
 	
 	nx = 0
@@ -53,7 +53,7 @@ function voronoiedges(D::DelDir)
 	y2 = D.vorsgs[:y2]
 
 	Nvor = size(D.vorsgs,1)
-	x = Array(Float64, 3*Nvor)
+	x = Array{Float64}(3*Nvor)
 	y = similar(x)
 	
 	nx = 0
@@ -71,27 +71,3 @@ function voronoiedges(D::DelDir)
 	return x, y
 end
 
-#=
-# I am reluctant to export this function as it depends on a plotting package
-@doc """
-	plot(D::DelDir)
-
-Plot the generators, its Delaunay triangulation and Voronoi tesselation.
-"""->
-function plot(D::DelDir)
-	Dx, Dy = delaunayedges(D)
-	Vx, Vy = voronoiedges(D)
-
-	plot(D.summary[:x], D.summary[:y], "o")
-	oplot(Vx, Vy, "r--")
-	oplot(Dx, Dy)
-
-	xmin = min( minimum(D.vorsgs[:x1]), minimum(D.vorsgs[:x2]) )
-	xmax = max( maximum(D.vorsgs[:x1]), maximum(D.vorsgs[:x2]) )
-	xlim(xmin, xmax)
-
-	ymin = min( minimum(D.vorsgs[:y1]), minimum(D.vorsgs[:y2]) )
-	ymax = max( maximum(D.vorsgs[:y1]), maximum(D.vorsgs[:y2]) )
-	ylim(ymin, ymax)
-end
-=#
