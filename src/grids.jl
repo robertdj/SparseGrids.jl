@@ -14,14 +14,14 @@ union of sparse sets
 """->
 function sparsegrid( D::Int, order::Int, f::Function=gausshermite; sym::Bool=true )
 	# Final nodes and weights in D dimensions
-	nodes = Array(Float64, D, 0)
-	weights = Array(Float64, 0)
+	nodes = Array{Float64}(D, 0)
+	weights = Array{Float64}(0)
 
 	# Compute univariate nodes and weights
 	nodes1D = cell(order)
 	weights1D = similar(nodes1D)
 
-	for k = 1:order
+	for k in 1:order
 		nodes1D[k], weights1D[k] = f( k )
 
 		if sym
@@ -42,8 +42,8 @@ function sparsegrid( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
 	order = length( nodes1D )
 
 	# Final nodes and weights in D dimensions
-	nodes = Array(Float64, D, 0)
-	weights = Array(Float64, 0)
+	nodes = Array{Float64}(D, 0)
+	weights = Array{Float64}(0)
 
 	mink = max(0, order-D)
 	maxk = order - 1
@@ -52,11 +52,11 @@ function sparsegrid( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
 	N = cell(D)
 	W = cell(D)
 
-	for k = mink:maxk
+	for k in mink:maxk
 		alpha = listNdq(D, D+k)
 		nalpha = size(alpha, 2)
 
-		for n = 1:nalpha
+		for n in 1:nalpha
 			# The nodes and weights for this alpha mixture
 			for d = 1:D
 				N[d] = nodes1D[ alpha[d,n] ]
@@ -97,7 +97,7 @@ function symmetrize!( nodes::Vector{Float64} )
 		midpoint = div( N, 2 )
 	end
 
-	for n = 1:midpoint
+	for n in 1:midpoint
 		nodes[n] = -nodes[N+1-n]
 	end
 end
@@ -134,7 +134,7 @@ function listNdq( D::Int, q::Int )
 			k[p] = 1
 			p += 1
 		else
-			for i = 1:p-1
+			for i in 1:p-1
 				khat[i] = khat[p] - k[p] + 1
 			end
 
@@ -165,7 +165,7 @@ function combvec( vecs::Array{Any} )
 	T = eltype( P[1] )
 	y = Array( T, D, N )
 
-	for n = 1:N
+	for n in 1:N
 		y[:,n] = [P[n]...]
 	end
 
@@ -200,7 +200,7 @@ function uniquenodes(nodes::Matrix, weights::Vector)
 	keep = [1]
 	lastkeep = 1
 
-	for n = 2:N
+	for n in 2:N
 		if sortnodes[:,n] == sortnodes[:,n-1]
 			weights[lastkeep] += weights[n]
 		else

@@ -1,3 +1,6 @@
+using SparseGrids
+using Base.Test
+
 # Moments of exp(-x^2)
 function gaussmoment(m::Int)
 	@assert m >= 0
