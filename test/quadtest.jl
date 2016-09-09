@@ -45,7 +45,10 @@ D = 3
 order = 4
 
 # Moments to test
-vecs = repmat( Any[[0:order;]], D )
+vecs = Vector{Vector{Int}}(D)
+for d in 1:D
+	vecs[d] = [0:order;]
+end
 P = combvec( vecs )
 
 M = size(P, 2)

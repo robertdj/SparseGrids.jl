@@ -12,13 +12,13 @@ If the nodes are supposed to be symmetric (as those in the Gauss-Hermite rule),
 they should be so in order to correctly identify multiply occuring nodes in the
 union of sparse sets
 """->
-function sparsegrid( D::Int, order::Int, f::Function=gausshermite; sym::Bool=true )
+function sparsegrid( D::Integer, order::Integer, f::Function=gausshermite; sym::Bool=true )
 	# Final nodes and weights in D dimensions
 	nodes = Array{Float64}(D, 0)
 	weights = Array{Float64}(0)
 
 	# Compute univariate nodes and weights
-	nodes1D = cell(order)
+	nodes1D = Vector{Vector{Float64}}(order)
 	weights1D = similar(nodes1D)
 
 	for k in 1:order
@@ -38,7 +38,7 @@ end
 # Computation of sparse grid nodes and the associated weights
 # from collection of one-dimensional nodes and weights
 
-function sparsegrid( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
+function sparsegrid( D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vector{Vector{Float64}} )
 	order = length( nodes1D )
 
 	# Final nodes and weights in D dimensions
@@ -49,8 +49,8 @@ function sparsegrid( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
 	maxk = order - 1
 
 	# Temporary nodes and weights for 1 dimension
-	N = cell(D)
-	W = cell(D)
+	N = Vector{Vector{Float64}}(D)
+	W = similar(N)
 
 	for k in mink:maxk
 		alpha = listNdq(D, D+k)
@@ -58,7 +58,7 @@ function sparsegrid( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
 
 		for n in 1:nalpha
 			# The nodes and weights for this alpha mixture
-			for d = 1:D
+			for d in 1:D
 				N[d] = nodes1D[ alpha[d,n] ]
 				W[d] = weights1D[ alpha[d,n] ]
 			end
@@ -71,8 +71,8 @@ function sparsegrid( D::Int, nodes1D::Array{Any,1}, weights1D::Array{Any,1} )
 			combW = (-1)^(maxk-k) * binomial(D-1, D+k-order) * prod(cw, 1)
 
 			# Save nodes and weights
-			nodes = [nodes combN]
-			weights = [weights ; vec(combW)]
+			nodes = hcat(nodes, combN)
+			weights = vcat(weights, vec(combW))
 		end
 	end
 
@@ -112,7 +112,7 @@ Find elements in the set `N^D_q = { i \in N^D : sum(i) = q }`.
 
 The algorithm and the formula for computing the number of elements in this set is found in the thesis mentioned in the README
 """->
-function listNdq( D::Int, q::Int )
+function listNdq( D::Integer, q::Integer )
 	if q < D
 		error("listNdq: q must be larger than D")
 	end
@@ -154,19 +154,19 @@ end
 	combvec( vecs::Array{Any} ) -> Matrix
 
 Counterpart of Matlab's combvec: 
-Creates all combinations of vectors in `vecs`.
+Creates all combinations of vectors in `vecs`, an array of vectors.
 """->
-function combvec( vecs::Array{Any} )
+function combvec{T}( vecs::Vector{Vector{T}} )
 	# Construct all Cartesian combinations of elements in vec as tuples
-	P = collect(product( vecs... ))
+	P = product( vecs... )
 
-	D = length(P[1])
-	N = length(P)
-	T = eltype( P[1] )
-	y = Array( T, D, N )
+	D = length(vecs)
+	N = length(P)::Int64
+	y = Array{T}(D,N)
 
-	for n in 1:N
-		y[:,n] = [P[n]...]
+	n = 0
+	for p in P
+		y[:,n+=1] = [p...]
 	end
 
 	return y
@@ -176,6 +176,7 @@ end
 # ------------------------------------------------------------ 
 
 # Copy of Base.sortcols that also returns the permutation indices
+# TODO: Update when 0.5/0.6 is out
 function sortcolsidx(A::AbstractMatrix; kws...)
     r = 1:size(A,1)
     cols = [ sub(A,r,i) for i=1:size(A,2) ]
@@ -190,7 +191,7 @@ end
 
 Find unique nodes and sum the weights of the identical nodes
 """->
-function uniquenodes(nodes::Matrix, weights::Vector)
+function uniquenodes(nodes::AbstractMatrix, weights::AbstractVector)
 	# Sort nodes and weights according to nodes
 	sortnodes, P = sortcolsidx(nodes)
 	weights = weights[P]
@@ -225,7 +226,7 @@ end
 
 	Compute tensor grid of `N` nodes and corresponding weights `W` for `D` dimensions.
 """->
-function tensorgrid( N::Vector, W::Vector, D::Int )
+function tensorgrid( N::Vector, W::Vector, D::Integer )
 	NN = repeat( Any[N], outer=[D; 1] )
 	WW = repeat( Any[W], outer=[D; 1] )
 
@@ -236,7 +237,7 @@ function tensorgrid( N::Vector, W::Vector, D::Int )
 end
 
 
-function tensorgrid( D::Int, order::Int, f::Function=gausshermite )
+function tensorgrid( D::Integer, order::Integer, f::Function=gausshermite )
 	N, W = f(order)
 
 	tensorN, tensorW = tensorgrid(N, W, D)
