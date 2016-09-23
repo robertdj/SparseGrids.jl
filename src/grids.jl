@@ -179,7 +179,7 @@ end
 # TODO: Update when 0.5/0.6 is out
 function sortcolsidx(A::AbstractMatrix; kws...)
     r = 1:size(A,1)
-    cols = [ sub(A,r,i) for i=1:size(A,2) ]
+    cols = [ view(A,r,i) for i=1:size(A,2) ]
     p = sortperm(cols; kws..., order=Base.Order.Lexicographic)
 
     return A[:,p], p
