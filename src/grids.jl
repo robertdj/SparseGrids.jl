@@ -4,7 +4,7 @@
 Computation of sparse grid nodes and the associated weights
 
 - `D` : Dimension of integrant
-- `k` : Order of quadrature rule
+- `order` : Order of quadrature rule
 - `f` : Function generating 1D nodes and weights -- in that order -- for an integer input
 - `sym` : Boolean variable determining if the nodes should be symmetrized
 
@@ -83,7 +83,7 @@ function sparsegrid( D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Ve
 end
 
 
-# ------------------------------------------------------------ 
+# ------------------------------------------------------------
 # To correctly reduce "overlapping" nodes the middle node in an
 # uneven number must be exactly zero
 
@@ -103,7 +103,7 @@ function symmetrize!( nodes::Vector{Float64} )
 end
 
 
-# ------------------------------------------------------------ 
+# ------------------------------------------------------------
 
 @doc """
 	listNdq( D::Int, q::Int )
@@ -153,7 +153,7 @@ end
 @doc """
 	combvec( vecs::Array{Any} ) -> Matrix
 
-Counterpart of Matlab's combvec: 
+Counterpart of Matlab's combvec:
 Creates all combinations of vectors in `vecs`, an array of vectors.
 """->
 function combvec{T}( vecs::Vector{Vector{T}} )
@@ -173,7 +173,7 @@ function combvec{T}( vecs::Vector{Vector{T}} )
 end
 
 
-# ------------------------------------------------------------ 
+# ------------------------------------------------------------
 
 # Copy of Base.sortcols that also returns the permutation indices
 # TODO: Update when 0.5/0.6 is out
@@ -218,7 +218,7 @@ function uniquenodes(nodes::AbstractMatrix, weights::AbstractVector)
 end
 
 
-# ------------------------------------------------------------ 
+# ------------------------------------------------------------
 # Compute tensor product grid
 
 @doc """
@@ -227,11 +227,11 @@ end
 	Compute tensor grid of `N` nodes and corresponding weights `W` for `D` dimensions.
 """->
 function tensorgrid( N::Vector, W::Vector, D::Integer )
-	NN = repeat( Any[N], outer=[D; 1] )
-	WW = repeat( Any[W], outer=[D; 1] )
+	NN = repeat( [N], outer=[D; 1] )
+	WW = repeat( [W], outer=[D; 1] )
 
-	tensorN = combvec( NN )
-	tensorW = vec(prod( combvec(WW), 1 ))
+	tensorN = combvec(NN[:])
+	tensorW = vec(prod( combvec(WW[:]), 1 ))
 
 	return tensorN, tensorW
 end
@@ -244,4 +244,3 @@ function tensorgrid( D::Integer, order::Integer, f::Function=gausshermite )
 
 	return tensorN, tensorW
 end
-
