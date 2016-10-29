@@ -53,7 +53,7 @@ Pkg.add("Deldir")
 
 As mentioned, this package is a wrapper for a Fortran library and if the Fortran code is not compiled automatically, you must run the `build.jl` script in the `deps` folder.
 
-Compilation is performed with `gfortran` and I have only tested this on OS X Yosemite and Linux Mint with Julia v0.4.
+Compilation is performed with `gfortran` and I have only tested this on OS X Yosemite and Linux Mint.
 
 
 ## Motivation
@@ -68,7 +68,7 @@ However, Deldir has two qualities that I value:
 
 
 **Update 2016-05-05**: 
-I have made the pure Julia package [VoronoiCells](https://github.com/robertdj/VoronoiCells.jl) with similar functionalities that executes *much* faster.
+I have made the pure Julia package [VoronoiCells](https://github.com/JuliaGeometry/VoronoiCells.jl) with similar functionalities that executes *much* faster.
 Consider the time taken to run the `voronoiarea` functions of both packages with an increasing number of points:
 
 ![Comparison of Deldir and VoronoiCells](comparison.png)
