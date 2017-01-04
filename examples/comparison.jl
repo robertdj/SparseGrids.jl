@@ -3,7 +3,7 @@ import Deldir: voronoiarea
 
 # Number of generators: Deldir does not go all the way
 Nsmall = [1000; 2000:2000:30_000]
-Nbig = [40_000:10_000:100_000]
+Nbig = 40_000:10_000:100_000
 N = vcat(Nsmall, Nbig)
 
 VCtime = Array{Float64}( length(N) )
@@ -21,24 +21,22 @@ for n in N
 	y = W[3] + W[4]*rand(n)
 
 	idx += 1
-	VCtime[idx] = @elapsed VoronoiCells.voronoiarea(x, y; rw=W)
+	VCtime[idx] = @elapsed VoronoiCells.voronoiarea(x, y, W)
 	if idx <= length(Nsmall)
-		Dtime[idx] = @elapsed Deldir.voronoiarea(x, y; rw=W)
+		Dtime[idx] = @elapsed Deldir.voronoiarea(x, y, W)
 	end
 end
 
 
 # ------------------------------------------------------------
 
-using Winston
+using Plots
 
 x = N / 1000
-plot( x, Dtime, "*" )
-oplot( x, VCtime, "r." )
-
-xlabel("number of points in 1000s")
-ylabel("time in seconds")
-legend(["Deldir"; "VoronoiCells"], (0.6,0.9))
+scatter( x, Dtime, label="Deldir" )
+scatter!( x, VCtime, label="VoronoiCells" )
+plot!( xlabel="number of points in 1000s", ylabel="time in seconds", xticks=0:20:100, yticks=0:5:20 )
+plot!(tickfont = font(13), legendfont = font(12))
 
 savefig("comparison.png")
 

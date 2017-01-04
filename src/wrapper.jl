@@ -150,13 +150,14 @@ end
 
 Wrapper for the Fortran code that returns the output rather undigested.
 """->
-function deldirwrapper(x::Vector{Float64}, y::Vector{Float64}; 
-	rw::Vector=[0.0;1.0;0.0;1.0], epsilon::Float64=1e-9)
+function deldirwrapper(x::Vector{Float64}, y::Vector{Float64}, rw::Vector=[0.0;1.0;0.0;1.0]; 
+                       epsilon::Float64=1e-9)
 
-	@assert length(x) == length(y) "Coordinate vectors must be of equal length"
-	@assert epsilon >= eps(Float64)
-	@assert minimum(x) >= rw[1] && maximum(x) <= rw[2] && minimum(y) >= rw[3] && 
-	maximum(y) <= rw[4] "Boundary window is too small"
+	length(x) == length(y) || throw(DimensionMismatch("Coordinate vectors must be of equal length"))
+    epsilon >= eps(Float64) || throw(DomainError())
+	if minimum(x) < rw[1] || maximum(x) > rw[2] && minimum(y) < rw[3] && maximum(y) > rw[4] 
+        throw(DomainError("Boundary window is too small"))
+    end
 
 	@initialize
 
@@ -218,34 +219,34 @@ Likewise for the `bp2` entry and the second endpoint of the edge.
 - The `vor_area` entry is the area of the Voronoi cell surrounding the point.
 """->
 function deldir(x::Vector{Float64}, y::Vector{Float64}; args...)
-	del, vor, sum = deldirwrapper(x,y; args...)
+	del, vor, summ = deldirwrapper(x,y; args...)
 
 	delsgs = DataFrame()
 	delsgs[:x1]   = del[:,1]
 	delsgs[:y1]   = del[:,2]
 	delsgs[:x2]   = del[:,3]
 	delsgs[:y2]   = del[:,4]
-	delsgs[:ind1] = round(Integer,del[:,5])
-	delsgs[:ind2] = round(Integer,del[:,6])
+	delsgs[:ind1] = round(Integer, del[:,5])
+	delsgs[:ind2] = round(Integer, del[:,6])
 
 	vorsgs = DataFrame()
 	vorsgs[:x1]   = vor[:,1]
 	vorsgs[:y1]   = vor[:,2]
 	vorsgs[:x2]   = vor[:,3]
 	vorsgs[:y2]   = vor[:,4]
-	vorsgs[:ind1] = round(Integer,vor[:,5])
-	vorsgs[:ind2] = round(Integer,vor[:,6])
+	vorsgs[:ind1] = round(Integer, vor[:,5])
+	vorsgs[:ind2] = round(Integer, vor[:,6])
 	vorsgs[:bp1]  = vor[:,7] .== 1
 	vorsgs[:bp2]  = vor[:,8] .== 1
 
 	summary = DataFrame()
-	summary[:x]        = sum[:,1]
-	summary[:y]        = sum[:,2]
-	summary[:ntri]     = round(Integer,sum[:,3])
-	summary[:del_area] = sum[:,4]
-	summary[:n_tside]  = round(Integer,sum[:,5])
-	summary[:nbpt]     = round(Integer,sum[:,6])
-	summary[:vor_area] = sum[:,7]
+	summary[:x]        = summ[:,1]
+	summary[:y]        = summ[:,2]
+	summary[:ntri]     = round(Integer, summ[:,3])
+	summary[:del_area] = summ[:,4]
+	summary[:n_tside]  = round(Integer, summ[:,5])
+	summary[:nbpt]     = round(Integer, summ[:,6])
+	summary[:vor_area] = summ[:,7]
 
 	return DelDir( delsgs, vorsgs, summary )
 end

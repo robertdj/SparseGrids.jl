@@ -18,7 +18,7 @@ D = deldir(x, y)
 
 The output from `deldir` is a struct with three DataFrames, one for the topology of the Delaunay triangulation, one for topology of the Voronoi tesselation and a summary mainly related to the area of the triangles and Voronoi cells.
 
-By default, `deldir` works with points in the unit rectangle, but other bounding rectangles can be specified as an optional argument.
+By default, `deldir` works with points in the unit rectangle, but other bounding rectangles can be specified as a third argument.
 
 The area of the Voronoi cells are also available directly with the function `voronoiarea`.
 
@@ -29,13 +29,13 @@ Dx, Dy = delaunayedges(D)
 Vx, Vy = voronoiedges(D)
 ```
 
-Using the results from above this can be plotted with e.g. Winston:
+Using the results from above this can be plotted using e.g. the [Plots package](https://github.com/tbreloff/Plots.jl):
 
 ```julia
-using Winston
-plot(x, y, "o")
-oplot(Vx, Vy, "r--")
-oplot(Dx, Dy)
+using Plots
+scatter(x, y, xlim=(0,1), ylim=(0,1), markersize=6, label="generators")
+plot!(Dx, Dy, label="Delaunay")
+plot!(Vx, Vy, style=:dash, label="Voronoi")
 ```
 
 One realization looks like the following.
@@ -78,8 +78,8 @@ The comparison plot is made with
 
 ```julia
 julia> versioninfo()
-Julia Version 0.4.0
-Commit 0ff703b (2015-10-08 06:20 UTC)
+Julia Version 0.5.0
+Commit 3c9d753 (2016-09-19 18:14 UTC)
 Platform Info:
   System: Linux (x86_64-linux-gnu)
   CPU: Intel(R) Core(TM) i7-3720QM CPU @ 2.60GHz
@@ -87,7 +87,7 @@ Platform Info:
   BLAS: libopenblas (USE64BITINT DYNAMIC_ARCH NO_AFFINITY Sandybridge)
   LAPACK: libopenblas64_
   LIBM: libopenlibm
-  LLVM: libLLVM-3.3
+  LLVM: libLLVM-3.7.1 (ORCJIT, ivybridge)
 ```
 
 

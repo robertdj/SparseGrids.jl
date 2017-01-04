@@ -5,8 +5,8 @@ Compute the area of each Voronoi cell of the generators `(x[i],y[i])` in the vec
 
 The optional arguments are passed to `deldir`.
 """->
-function voronoiarea(x::Vector, y::Vector; args...)
-	summary = deldirwrapper(x,y; args...)[3]
+function voronoiarea(x::Vector, y::Vector, rw::Vector=[0.0;1.0;0.0;1.0])
+	summary = deldirwrapper(x, y, rw)[3]
 
 	return summary[:,7]
 end
