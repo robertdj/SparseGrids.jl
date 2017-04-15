@@ -1,9 +1,9 @@
-@doc """
+"""
 	kpn( D::Int ) -> nodes, weights
 	
 Return the Konrod-Patterson `nodes` and `weights` of accuracy `D` as vectors.
-"""->
-function kpn( D::Int )
+"""
+function kpn(D::Int)
 	@assert 1 <= D <= 25 "Accuracy must be between 1 and 25"
 	return KPN_nodes[D], KPN_weights[D]
 end

@@ -1,18 +1,18 @@
-@doc """
-	sparsegrid( D::Int, order::Int, f::Function=gausshermite; sym::Bool=true )
+"""
+	sparsegrid( D::Int, k::Int, f::Function=gausshermite; sym::Bool=true )
 
 Computation of sparse grid nodes and the associated weights
 
 - `D` : Dimension of integrant
-- `order` : Order of quadrature rule
+- `k` : Order of quadrature rule
 - `f` : Function generating 1D nodes and weights -- in that order -- for an integer input
 - `sym` : Boolean variable determining if the nodes should be symmetrized
 
 If the nodes are supposed to be symmetric (as those in the Gauss-Hermite rule),
 they should be so in order to correctly identify multiply occuring nodes in the
 union of sparse sets
-"""->
-function sparsegrid( D::Integer, order::Integer, f::Function=gausshermite; sym::Bool=true )
+"""
+function sparsegrid(D::Integer, order::Integer, f::Function=gausshermite; sym::Bool=true)
 	# Final nodes and weights in D dimensions
 	nodes = Array{Float64}(D, 0)
 	weights = Array{Float64}(0)
@@ -38,7 +38,7 @@ end
 # Computation of sparse grid nodes and the associated weights
 # from collection of one-dimensional nodes and weights
 
-function sparsegrid( D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vector{Vector{Float64}} )
+function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vector{Vector{Float64}})
 	order = length( nodes1D )
 
 	# Final nodes and weights in D dimensions
@@ -87,7 +87,7 @@ end
 # To correctly reduce "overlapping" nodes the middle node in an
 # uneven number must be exactly zero
 
-function symmetrize!( nodes::Vector{Float64} )
+function symmetrize!(nodes::Vector{Float64})
 	N = length(nodes)
 
 	if isodd(N)
@@ -105,13 +105,13 @@ end
 
 # ------------------------------------------------------------
 
-@doc """
+"""
 	listNdq( D::Int, q::Int )
 
 Find elements in the set `N^D_q = { i \in N^D : sum(i) = q }`.
 
 The algorithm and the formula for computing the number of elements in this set is found in the thesis mentioned in the README
-"""->
+"""
 function listNdq( D::Integer, q::Integer )
 	if q < D
 		error("listNdq: q must be larger than D")
@@ -150,13 +150,13 @@ function listNdq( D::Integer, q::Integer )
 end
 
 
-@doc """
+"""
 	combvec( vecs::Array{Any} ) -> Matrix
 
 Counterpart of Matlab's combvec:
 Creates all combinations of vectors in `vecs`, an array of vectors.
-"""->
-function combvec{T}( vecs::Vector{Vector{T}} )
+"""
+function combvec{T}(vecs::Vector{Vector{T}})
 	# Construct all Cartesian combinations of elements in vec as tuples
 	P = product( vecs... )
 
@@ -186,11 +186,11 @@ function sortcolsidx(A::AbstractMatrix; kws...)
 end
 
 
-@doc """
+"""
 	uniquenodes(nodes::Matrix, weights::Vector)
 
 Find unique nodes and sum the weights of the identical nodes
-"""->
+"""
 function uniquenodes(nodes::AbstractMatrix, weights::AbstractVector)
 	# Sort nodes and weights according to nodes
 	sortnodes, P = sortcolsidx(nodes)
@@ -221,12 +221,12 @@ end
 # ------------------------------------------------------------
 # Compute tensor product grid
 
-@doc """
+"""
 	tensorgrid( N::Vector, W::Vector, D::Int )
 
 	Compute tensor grid of `N` nodes and corresponding weights `W` for `D` dimensions.
-"""->
-function tensorgrid( N::Vector, W::Vector, D::Integer )
+"""
+function tensorgrid(N::Vector, W::Vector, D::Integer)
 	NN = repeat( [N], outer=[D; 1] )
 	WW = repeat( [W], outer=[D; 1] )
 
@@ -237,10 +237,11 @@ function tensorgrid( N::Vector, W::Vector, D::Integer )
 end
 
 
-function tensorgrid( D::Integer, order::Integer, f::Function=gausshermite )
+function tensorgrid(D::Integer, order::Integer, f::Function=gausshermite)
 	N, W = f(order)
 
 	tensorN, tensorW = tensorgrid(N, W, D)
 
 	return tensorN, tensorW
 end
+

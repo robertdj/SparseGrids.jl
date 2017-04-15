@@ -14,7 +14,6 @@ export
 	tensorgrid,
 	listNdq,
 	combvec,
-	symmetrize!,
 	kpn
 
 end # module
