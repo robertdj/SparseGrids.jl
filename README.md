@@ -1,4 +1,4 @@
-# Sparsegrids
+# SparseGrids
 
 [![Build Status](https://travis-ci.org/robertdj/SparseGrids.jl.svg?branch=master)](https://travis-ci.org/robertdj/SparseGrids.jl)
 [![codecov.io](https://codecov.io/github/robertdj/SparseGrids.jl/coverage.svg?branch=master)](https://codecov.io/github/robertdj/SparseGrids.jl?branch=master)
