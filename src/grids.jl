@@ -22,14 +22,14 @@ function sparsegrid(D::Integer, order::Integer, f::Function=gausshermite; sym::B
 	weights1D = similar(nodes1D)
 
 	for k in 1:order
-		nodes1D[k], weights1D[k] = f( k )
+		nodes1D[k], weights1D[k] = f(k)
 
 		if sym
-			symmetrize!( nodes1D[k] )
+			symmetrize!(nodes1D[k])
 		end
 	end
 
-	nodes, weights = sparsegrid( D, nodes1D, weights1D )
+	nodes, weights = sparsegrid(D, nodes1D, weights1D)
 
 	return nodes, weights
 end
@@ -39,7 +39,7 @@ end
 # from collection of one-dimensional nodes and weights
 
 function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vector{Vector{Float64}})
-	order = length( nodes1D )
+	order = length(nodes1D)
 
 	# Final nodes and weights in D dimensions
 	nodes = Array{Float64}(D, 0)
@@ -158,7 +158,7 @@ Creates all combinations of vectors in `vecs`, an array of vectors.
 """
 function combvec{T}(vecs::Vector{Vector{T}})
 	# Construct all Cartesian combinations of elements in vec as tuples
-	P = product( vecs... )
+	P = product(vecs...)
 
 	D = length(vecs)
 	N = length(P)::Int64
@@ -166,7 +166,7 @@ function combvec{T}(vecs::Vector{Vector{T}})
 
 	n = 0
 	for p in P
-		y[:,n+=1] = [p...]
+		y[:, n+=1] = [p...]
 	end
 
 	return y
@@ -175,11 +175,14 @@ end
 
 # ------------------------------------------------------------
 
-# Copy of Base.sortcols that also returns the permutation indices
-# TODO: Update when 0.5/0.6 is out
+# Copy of Base.Sort.sortcols that also returns the permutation indices
 function sortcolsidx(A::AbstractMatrix; kws...)
-    r = 1:size(A,1)
-    cols = [ view(A,r,i) for i=1:size(A,2) ]
+    inds = indices(A,2)
+    T = Base.Sort.slicetypeof(A, :, inds)
+    cols = similar(Vector{T}, indices(A, 2))
+    for i in inds
+        cols[i] = view(A, :, i)
+    end
     p = sortperm(cols; kws..., order=Base.Order.Lexicographic)
 
     return A[:,p], p

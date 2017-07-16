@@ -1,7 +1,5 @@
 module SparseGrids
 
-import Compat.view
-
 import FastGaussQuadrature: gausshermite
 import IterTools: collect, product
 
