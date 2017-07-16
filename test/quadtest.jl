@@ -70,7 +70,7 @@ for generator = [FastGaussQuadrature.gausshermite, kpn]
 
 			# Expected test result depends on the total degree
 			if sum(curP) <= max_degree
-				@test_approx_eq I Q
+				@test I ≈ Q
 			else
 				@test abs(I - Q) > 1e-3
 			end

@@ -3,7 +3,7 @@ module SparseGrids
 import Compat.view
 
 import FastGaussQuadrature: gausshermite
-import Iterators: collect, product
+import IterTools: collect, product
 
 include("grids.jl")
 include("nested.jl")
