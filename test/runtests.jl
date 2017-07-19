@@ -7,5 +7,5 @@ x = rand(N)
 y = rand(N)
 
 A = voronoiarea(x, y)
-@test_approx_eq sum(A) 1
+@test sum(A) ≈ 1
 

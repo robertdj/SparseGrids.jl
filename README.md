@@ -9,24 +9,22 @@ This Julia package wraps the Fortran code from deldir.
 ## Usage
 
 The coordinates of the generators are specified as two vectors that are fed to `deldir`, the main function of this package:
-
 ```julia
 x = rand(8)
 y = rand(8)
-D = deldir(x, y)
+del, vor, summ = deldir(x, y)
 ```
 
-The output from `deldir` is a struct with three DataFrames, one for the topology of the Delaunay triangulation, one for topology of the Voronoi tesselation and a summary mainly related to the area of the triangles and Voronoi cells.
+The output from `deldir` are three DataFrames, one for the topology of the Delaunay triangulation, one for topology of the Voronoi tesselation and a summary mainly related to the area of the triangles and Voronoi cells.
 
 By default, `deldir` works with points in the unit rectangle, but other bounding rectangles can be specified as a third argument.
 
 The area of the Voronoi cells are also available directly with the function `voronoiarea`.
 
 Two functions are available to extract the edges of the Delaunay triangles and Voronoi cells in a "plot friendly" manner:
-
 ```julia
-Dx, Dy = delaunayedges(D)
-Vx, Vy = voronoiedges(D)
+Dx, Dy = edges(del)
+Vx, Vy = edges(vor)
 ```
 
 Using the results from above this can be plotted using e.g. the [Plots package](https://github.com/tbreloff/Plots.jl):
@@ -51,9 +49,10 @@ Install the package by running
 Pkg.add("Deldir")
 ```
 
-As mentioned, this package is a wrapper for a Fortran library and if the Fortran code is not compiled automatically, you must run the `build.jl` script in the `deps` folder.
-
+As mentioned, this package is a wrapper for a Fortran library.
 Compilation is performed with `gfortran` and I have only tested this on OS X Yosemite and Linux Mint.
+
+To re-compile the Fortran code, run `Pkg.build("Deldir")`.
 
 
 ## Motivation
@@ -75,7 +74,6 @@ Consider the time taken to run the `voronoiarea` functions of both packages with
 
 The script generating this output is available in the `examples` folder.
 The comparison plot is made with
-
 ```julia
 julia> versioninfo()
 Julia Version 0.5.0

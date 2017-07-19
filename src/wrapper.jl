@@ -2,38 +2,23 @@
 # names that are copied verbatim from the R package. 
 
 
-type DelDir
-	delsgs::DataFrame
-	vorsgs::DataFrame
-	summary::DataFrame
-end
-
-function Base.show(io::IO, D::DelDir)
-	println("Delaunay topology, delsgs:")
-	show(io, D.delsgs)
-	println("\n\nVoronoi topology, vorsgs:")
-	show(io, D.vorsgs)
-	println("\n\nArea summary:")
-	show(io, D.summary)
-end
-
-@doc """
+"""
 	remove_duplicates(x::Vector, y::Vector)
 
 Remove duplicate tuples `(x[i],y[i])` from the vectors `x` and `y`.
-"""->
+"""
 function remove_duplicates(x::Vector, y::Vector)
 	points = [x y]
 	unique_points = unique(points, 1)
 
-	return unique_points[:,1], unique_points[:,2]
+	return unique_points[:, 1], unique_points[:, 2]
 end
 
-@doc """
+"""
 	initialize()
 
 Set up input for the deldir Fortran routine
-"""->
+"""
 macro initialize()
 	esc(quote
 		# According to the documentation in the R package: 
@@ -81,11 +66,11 @@ macro initialize()
 	end)
 end
 
-@doc """
+"""
 	allocate()
 
 Allocate input to be modified by the deldir Fortran routine
-"""->
+"""
 macro allocate()
 	esc(quote
 		nadj   = zeros(Int32, tadj)
@@ -101,11 +86,11 @@ macro allocate()
 	end)
 end
 
-@doc """
+"""
 	error_handling()
 
 Handle errors from the deldir Fortran routine
-"""->
+"""
 macro error_handling()
 	esc(quote
 		if nerror[] == 4
@@ -128,11 +113,11 @@ macro error_handling()
 	end)
 end
 
-@doc """
+"""
 	finalize()
 
 Process output from the deldir Fortran routine
-"""->
+"""
 macro finalize()
 	esc(quote
 		num_del = Int64(ndel[])
@@ -145,11 +130,11 @@ macro finalize()
 	end)
 end
 
-@doc """
+"""
 	deldirwrapper(x::Vector{Float64}, y::Vector{Float64}; ...)
 
 Wrapper for the Fortran code that returns the output rather undigested.
-"""->
+"""
 function deldirwrapper(x::Vector{Float64}, y::Vector{Float64}, rw::Vector=[0.0;1.0;0.0;1.0]; 
                        epsilon::Float64=1e-9)
 
@@ -182,20 +167,19 @@ function deldirwrapper(x::Vector{Float64}, y::Vector{Float64}, rw::Vector=[0.0;1
 	return delsgs, dirsgs, allsum
 end
 
-@doc """
+"""
 	deldir(x::Vector, y::Vector; ...)
 
 Compute the Delaunay triangulation and Voronoi tesselation of the 2D points with x-coordinates `x` and y-coordinates `y`.
 
 Optional arguments are
 
-- `rw`: Boundary rectangle specified as a vector with `[xmin, xmax, ymin, ymax]`.
-By default, `rw` is the unit rectangle.
+- `rw`: Boundary rectangle specified as a vector with `[xmin, xmax, ymin, ymax]`. By default, `rw` is the unit rectangle.
 - `epsilon`: A value of epsilon used in testing whether a quantity is zeros, mainly in the context of whether points are collinear.
 If anomalous errors arise, it is possible that these may averted by adjusting the value of `epsilon` upward or downward.
 By default, `epsilon = 1e-9`.
 
-The output is a struct with three `DataFrame`s:
+The output are three `DataFrame`s:
 
 ###### `delsgs`
 
@@ -217,37 +201,37 @@ Likewise for the `bp2` entry and the second endpoint of the edge.
 - The `n_tside` entry is the number of sides — within the rectangular window — of the Voronoi cell surrounding the point.
 - The `nbpt` entry is the number of points in which the Voronoi cell intersects the boundary of the rectangular window.
 - The `vor_area` entry is the area of the Voronoi cell surrounding the point.
-"""->
+"""
 function deldir(x::Vector{Float64}, y::Vector{Float64}; args...)
-	del, vor, summ = deldirwrapper(x,y; args...)
+	del, vor, summ = deldirwrapper(x, y; args...)
 
 	delsgs = DataFrame()
-	delsgs[:x1]   = del[:,1]
-	delsgs[:y1]   = del[:,2]
-	delsgs[:x2]   = del[:,3]
-	delsgs[:y2]   = del[:,4]
-	delsgs[:ind1] = round(Integer, del[:,5])
-	delsgs[:ind2] = round(Integer, del[:,6])
+	delsgs[:x1]   = del[:, 1]
+	delsgs[:y1]   = del[:, 2]
+	delsgs[:x2]   = del[:, 3]
+	delsgs[:y2]   = del[:, 4]
+	delsgs[:ind1] = round.(Integer, del[:, 5])
+	delsgs[:ind2] = round.(Integer, del[:, 6])
 
 	vorsgs = DataFrame()
-	vorsgs[:x1]   = vor[:,1]
-	vorsgs[:y1]   = vor[:,2]
-	vorsgs[:x2]   = vor[:,3]
-	vorsgs[:y2]   = vor[:,4]
-	vorsgs[:ind1] = round(Integer, vor[:,5])
-	vorsgs[:ind2] = round(Integer, vor[:,6])
-	vorsgs[:bp1]  = vor[:,7] .== 1
-	vorsgs[:bp2]  = vor[:,8] .== 1
+	vorsgs[:x1]   = vor[:, 1]
+	vorsgs[:y1]   = vor[:, 2]
+	vorsgs[:x2]   = vor[:, 3]
+	vorsgs[:y2]   = vor[:, 4]
+	vorsgs[:ind1] = round.(Integer, vor[:, 5])
+	vorsgs[:ind2] = round.(Integer, vor[:, 6])
+	vorsgs[:bp1]  = vor[:, 7] .== 1
+	vorsgs[:bp2]  = vor[:, 8] .== 1
 
 	summary = DataFrame()
-	summary[:x]        = summ[:,1]
-	summary[:y]        = summ[:,2]
-	summary[:ntri]     = round(Integer, summ[:,3])
-	summary[:del_area] = summ[:,4]
-	summary[:n_tside]  = round(Integer, summ[:,5])
-	summary[:nbpt]     = round(Integer, summ[:,6])
-	summary[:vor_area] = summ[:,7]
+	summary[:x]        = summ[:, 1]
+	summary[:y]        = summ[:, 2]
+	summary[:ntri]     = round.(Integer, summ[:, 3])
+	summary[:del_area] = summ[:, 4]
+	summary[:n_tside]  = round.(Integer, summ[:, 5])
+	summary[:nbpt]     = round.(Integer, summ[:, 6])
+	summary[:vor_area] = summ[:, 7]
 
-	return DelDir( delsgs, vorsgs, summary )
+	return delsgs, vorsgs, summary
 end
 

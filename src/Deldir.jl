@@ -11,8 +11,7 @@ export
 	# Functions
 	deldir,
 	voronoiarea,
-	voronoiedges,
-	delaunayedges
+	edges
 
 include("wrapper.jl")
 include("misc.jl")

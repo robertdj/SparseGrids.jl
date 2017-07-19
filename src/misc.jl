@@ -1,63 +1,33 @@
-@doc """
-	voronoiarea(x::Vector, y::Vector; args...) -> Vector
+"""
+voronoiarea(x::Vector, y::Vector, rw) -> Vector
 
 Compute the area of each Voronoi cell of the generators `(x[i],y[i])` in the vectors `x` and `y`.
 
-The optional arguments are passed to `deldir`.
-"""->
+`rw` is the boundary window.
+"""
 function voronoiarea(x::Vector, y::Vector, rw::Vector=[0.0;1.0;0.0;1.0])
 	summary = deldirwrapper(x, y, rw)[3]
 
-	return summary[:,7]
+	return summary[:, 7]
 end
 
-@doc """
-	delaunayedges(D::DelDir) -> (Vector, Vector)
+"""
+	edges(D) -> Vector, Vector
 
-Collect the Delaunay edges in vectors that are ready to be plotted.
-"""->
-function delaunayedges(D::DelDir)
-	x1 = D.delsgs[:x1]
-	y1 = D.delsgs[:y1]
-	x2 = D.delsgs[:x2]
-	y2 = D.delsgs[:y2]
+Collect the edges of a dataframe in vectors that are ready to be plotted.
+"""
+function edges(D::DataFrame)
+	x1 = D[:x1]
+	y1 = D[:y1]
+	x2 = D[:x2]
+	y2 = D[:y2]
 
-	Ndel = size(D.delsgs,1)
-	x = Array{Float64}(3*Ndel)
+	N = size(D, 1)
+	x = Array{Float64}(3*N)
 	y = similar(x)
 	
 	nx = 0
-	for n = 1:Ndel
-		x[nx+=1] = x1[n]
-		y[nx] = y1[n]
-
-		x[nx+=1] = x2[n]
-		y[nx] = y2[n]
-
-		x[nx+=1] = NaN
-		y[nx] = NaN
-	end
-
-	return x, y
-end
-
-@doc """
-	voronoiedges(D::DelDir) -> (Vector, Vector)
-
-Collect the Voronoi edges in vectors that are ready to be plotted.
-"""->
-function voronoiedges(D::DelDir)
-	x1 = D.vorsgs[:x1]
-	y1 = D.vorsgs[:y1]
-	x2 = D.vorsgs[:x2]
-	y2 = D.vorsgs[:y2]
-
-	Nvor = size(D.vorsgs,1)
-	x = Array{Float64}(3*Nvor)
-	y = similar(x)
-	
-	nx = 0
-	for n = 1:Nvor
+	for n = 1:N
 		x[nx+=1] = x1[n]
 		y[nx] = y1[n]
 
