@@ -179,15 +179,12 @@ end
 
 # ------------------------------------------------------------
 
-# Copy of Base.Sort.sortcols that also returns the permutation indices
-function sortcolsidx(A::AbstractMatrix; kws...)
-    inds = indices(A,2)
-    T = Base.Sort.slicetypeof(A, :, inds)
-    cols = similar(Vector{T}, indices(A, 2))
-    for i in inds
-        cols[i] = view(A, :, i)
-    end
-    p = sortperm(cols; kws..., order=Base.Order.Lexicographic)
+# Copy of Base._sortslices for dims = 2 that also returns the permutation indices
+# Previously Base.Sort.sortcols
+function sortcolsidx(A::AbstractMatrix)
+    itspace = Base.compute_itspace(A, Val(2))
+    vecs = map(its->view(A, its...), itspace)
+    p = sortperm(vecs)
 
     return A[:,p], p
 end
