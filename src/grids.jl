@@ -14,11 +14,11 @@ union of sparse sets
 """
 function sparsegrid(D::Integer, order::Integer, f::Function=gausshermite; sym::Bool=true)
 	# Final nodes and weights in D dimensions
-	nodes = Array{Float64}(D, 0)
-	weights = Array{Float64}(0)
+	nodes = Array{Float64}(undef, D, 0)
+	weights = Array{Float64}(undef, 0)
 
 	# Compute univariate nodes and weights
-	nodes1D = Vector{Vector{Float64}}(order)
+	nodes1D = Vector{Vector{Float64}}(undef, order)
 	weights1D = similar(nodes1D)
 
 	for k in 1:order
@@ -42,14 +42,14 @@ function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vec
 	order = length(nodes1D)
 
 	# Final nodes and weights in D dimensions
-	nodes = Array{Float64}(D, 0)
-	weights = Array{Float64}(0)
+	nodes = Array{Float64}(undef, D, 0)
+	weights = Array{Float64}(undef, 0)
 
 	mink = max(0, order-D)
 	maxk = order - 1
 
 	# Temporary nodes and weights for 1 dimension
-	N = Vector{Vector{Float64}}(D)
+	N = Vector{Vector{Float64}}(undef, D)
 	W = similar(N)
 
 	for k in mink:maxk
@@ -68,7 +68,7 @@ function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vec
 
 			# Compute the associated weights
 			cw = combvec(W)
-			combW = (-1)^(maxk-k) * binomial(D-1, D+k-order) * prod(cw, 1)
+			combW = (-1)^(maxk-k) * binomial(D-1, D+k-order) * prod(cw, dims = 1)
 
 			# Save nodes and weights
 			nodes = hcat(nodes, combN)
@@ -104,15 +104,19 @@ end
 
 
 # ------------------------------------------------------------
+# N^D_q = \{ i \in N^D : sum(i) = q \}
 
 """
-	listNdq( D::Int, q::Int )
+	listNdq(D::Int, q::Int)
 
-Find elements in the set `N^D_q = { i \in N^D : sum(i) = q }`.
+Find elements in the set 
+```math
+N_q^D = {i in N^D : sum(i) = q}
+```
 
 The algorithm and the formula for computing the number of elements in this set is found in the thesis mentioned in the README
 """
-function listNdq( D::Integer, q::Integer )
+function listNdq(D::Integer, q::Integer)
 	if q < D
 		error("listNdq: q must be larger than D")
 	end
@@ -156,13 +160,13 @@ end
 Counterpart of Matlab's combvec:
 Creates all combinations of vectors in `vecs`, an array of vectors.
 """
-function combvec{T}(vecs::Vector{Vector{T}})
+function combvec(vecs::Vector{Vector{T}}) where T
 	# Construct all Cartesian combinations of elements in vec as tuples
-	P = product(vecs...)
+	P = Iterators.product(vecs...)
 
 	D = length(vecs)
 	N = length(P)::Int64
-	y = Array{T}(D,N)
+	y = Array{T}(undef, D,N)
 
 	n = 0
 	for p in P
@@ -175,15 +179,12 @@ end
 
 # ------------------------------------------------------------
 
-# Copy of Base.Sort.sortcols that also returns the permutation indices
-function sortcolsidx(A::AbstractMatrix; kws...)
-    inds = indices(A,2)
-    T = Base.Sort.slicetypeof(A, :, inds)
-    cols = similar(Vector{T}, indices(A, 2))
-    for i in inds
-        cols[i] = view(A, :, i)
-    end
-    p = sortperm(cols; kws..., order=Base.Order.Lexicographic)
+# Copy of Base._sortslices for dims = 2 that also returns the permutation indices
+# Previously Base.Sort.sortcols
+function sortcolsidx(A::AbstractMatrix)
+    itspace = Base.compute_itspace(A, Val(2))
+    vecs = map(its->view(A, its...), itspace)
+    p = sortperm(vecs)
 
     return A[:,p], p
 end
