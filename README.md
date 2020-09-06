@@ -8,10 +8,10 @@ This package computes sparse grids for quadrature rules used to compute multidim
 
 ## Installation
 
-In Julia, run 
+In Julia switch to `Pkg` with `]` and run
 
 ```julia
-Pkg.add("SparseGrids")
+add SparseGrids
 ```
 
 
