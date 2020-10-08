@@ -45,7 +45,7 @@ function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vec
 	nodes = Array{Float64}(undef, D, 0)
 	weights = Array{Float64}(undef, 0)
 
-	mink = max(0, order-D)
+	mink = max(0, order - D)
 	maxk = order - 1
 
 	# Temporary nodes and weights for 1 dimension
@@ -53,14 +53,16 @@ function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vec
 	W = similar(N)
 
 	for k in mink:maxk
-		alpha = listNdq(D, D+k)
+		alpha = listNdq(D, D + k)
 		nalpha = size(alpha, 2)
 
 		for n in 1:nalpha
 			# The nodes and weights for this alpha mixture
 			for d in 1:D
-				N[d] = nodes1D[ alpha[d][n] ]
-				W[d] = weights1D[ alpha[d][n] ]
+				index = alpha[d][n]
+
+				N[d] = nodes1D[index]
+				W[d] = weights1D[index]
 			end
 
 			# Compute all the possible combinations of D-dimensional nodes
@@ -68,7 +70,7 @@ function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vec
 
 			# Compute the associated weights
 			cw = combvec(W)
-			combW = (-1)^(maxk-k) * binomial(D-1, D+k-order) * prod(cw, dims = 1)
+			combW = (-1)^(maxk - k) * binomial(D - 1, D + k - order) * prod(cw, dims = 1)
 
 			# Save nodes and weights
 			nodes = hcat(nodes, combN)
@@ -91,14 +93,14 @@ function symmetrize!(nodes::Vector{Float64})
 	N = length(nodes)
 
 	if isodd(N)
-		midpoint = div( N-1, 2 )
-		nodes[ midpoint+1 ] = 0.0
+		midpoint = div(N - 1, 2)
+		nodes[midpoint + 1] = 0.0
 	else
-		midpoint = div( N, 2 )
+		midpoint = div(N, 2)
 	end
 
 	for n in 1:midpoint
-		nodes[n] = -nodes[N+1-n]
+		nodes[n] = -nodes[N + 1 - n]
 	end
 end
 
@@ -121,7 +123,7 @@ function listNdq(D::Integer, q::Integer)
 		error("q must be larger than D")
 	end
 
-	M = binomial(q-1, D-1)
+	M = binomial(q - 1, D - 1)
 	L = [Vector{Int64}(undef, D) for _ in 1:M]
 
 	k = ones(Int, D)
@@ -183,10 +185,10 @@ end
 # Previously Base.Sort.sortcols
 function sortcolsidx(A::AbstractMatrix)
     itspace = Base.compute_itspace(A, Val(2))
-    vecs = map(its->view(A, its...), itspace)
+    vecs = map(its -> view(A, its...), itspace)
     p = sortperm(vecs)
 
-    return A[:,p], p
+    return A[:, p], p
 end
 
 
@@ -206,7 +208,7 @@ function uniquenodes(nodes::AbstractMatrix, weights::AbstractVector)
 	lastkeep = 1
 
 	for n in 2:N
-		if sortnodes[:,n] == sortnodes[:,n-1]
+		if sortnodes[:, n] == sortnodes[:, n-1]
 			weights[lastkeep] += weights[n]
 		else
 			lastkeep = n
@@ -231,11 +233,11 @@ end
 	Compute tensor grid of `N` nodes and corresponding weights `W` for `D` dimensions.
 """
 function tensorgrid(N::Vector, W::Vector, D::Integer)
-	NN = repeat( [N], outer=[D; 1] )
-	WW = repeat( [W], outer=[D; 1] )
+	NN = repeat([N], outer=[D; 1])
+	WW = repeat([W], outer=[D; 1])
 
 	tensorN = combvec(NN[:])
-	tensorW = vec(prod( combvec(WW[:]), 1 ))
+	tensorW = vec(prod(combvec(WW[:]), 1))
 
 	return tensorN, tensorW
 end
