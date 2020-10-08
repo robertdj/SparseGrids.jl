@@ -59,8 +59,8 @@ function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vec
 		for n in 1:nalpha
 			# The nodes and weights for this alpha mixture
 			for d in 1:D
-				N[d] = nodes1D[ alpha[d,n] ]
-				W[d] = weights1D[ alpha[d,n] ]
+				N[d] = nodes1D[ alpha[d][n] ]
+				W[d] = weights1D[ alpha[d][n] ]
 			end
 
 			# Compute all the possible combinations of D-dimensional nodes
@@ -118,11 +118,11 @@ The algorithm and the formula for computing the number of elements in this set i
 """
 function listNdq(D::Integer, q::Integer)
 	if q < D
-		error("listNdq: q must be larger than D")
+		error("q must be larger than D")
 	end
 
 	M = binomial(q-1, D-1)
-	L = ones(Int, D, M)
+	L = [Vector{Int64}(undef, D) for _ in 1:M]
 
 	k = ones(Int, D)
 	maxk = q - D + 1
@@ -138,7 +138,7 @@ function listNdq(D::Integer, q::Integer)
 			k[p] = 1
 			p += 1
 		else
-			for i in 1:p-1
+			for i in 1:p - 1
 				khat[i] = khat[p] - k[p] + 1
 			end
 
@@ -146,7 +146,7 @@ function listNdq(D::Integer, q::Integer)
 			p = 1
 
 			count += 1
-			L[:,count] = k
+			copy!(L[count], k)
 		end
 	end
 
