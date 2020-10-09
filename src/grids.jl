@@ -124,7 +124,7 @@ function listNdq(D::Integer, q::Integer)
 	end
 
 	M = binomial(q - 1, D - 1)
-	L = [Vector{Int64}(undef, D) for _ in 1:M]
+	L = [ones(Int, D) for _ in 1:M]
 
 	k = ones(Int, D)
 	maxk = q - D + 1
