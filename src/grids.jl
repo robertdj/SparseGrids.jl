@@ -54,12 +54,12 @@ function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vec
 
 	for k in mink:maxk
 		alpha = listNdq(D, D + k)
-		nalpha = size(alpha, 2)
+		nalpha = length(alpha)
 
 		for n in 1:nalpha
 			# The nodes and weights for this alpha mixture
 			for d in 1:D
-				index = alpha[d][n]
+				index = alpha[n][d]
 
 				N[d] = nodes1D[index]
 				W[d] = weights1D[index]
