@@ -163,16 +163,14 @@ Counterpart of Matlab's combvec:
 Creates all combinations of vectors in `vecs`, an array of vectors.
 """
 function combvec(vecs::Vector{Vector{T}}) where T
+	D = length(vecs)
+	N = map(length, vecs) |> prod
+	y = [Vector{Float64}(undef, D) for _ in 1:N]
+
 	# Construct all Cartesian combinations of elements in vec as tuples
 	P = Iterators.product(vecs...)
-
-	D = length(vecs)
-	N = length(P)::Int64
-	y = Array{T}(undef, D,N)
-
-	n = 0
-	for p in P
-		y[:, n+=1] = [p...]
+	for (n, p) in enumerate(P)
+		y[n] = [p...]
 	end
 
 	return y
