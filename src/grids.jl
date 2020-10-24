@@ -41,47 +41,50 @@ end
 function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vector{Vector{Float64}})
 	order = length(nodes1D)
 
-	# Final nodes and weights in D dimensions
-	nodes = Array{Float64}(undef, D, 0)
-	weights = Array{Float64}(undef, 0)
-
 	mink = max(0, order - D)
 	maxk = order - 1
+	all_alpha_lists = [listNdq(D, D + k) for k in mink:maxk]
 
-	# Temporary nodes and weights for 1 dimension
-	N = Vector{Vector{Float64}}(undef, D)
-	W = similar(N)
+	number_of_nodes = map(x -> sum(prod.(x)), all_alpha_lists) |> sum
 
-	for k in mink:maxk
-		alpha = listNdq(D, D + k)
-		nalpha = length(alpha)
+	# Final nodes and weights in D dimensions
+	# nodes = [Vector{Float64}(undef, D) for _ in 1:1]
+	# empty!(nodes)
+	nodes = Vector{Vector{Float64}}(undef, 0)
+	sizehint!(nodes, number_of_nodes)
+	# nodes = [Vector{Float64}(undef, D) for _ in 1:number_of_nodes]
+	weights = Array{Float64}(undef, 0)
+	sizehint!(weights, number_of_nodes)
+	# weights = Array{Float64}(undef, number_of_nodes)
 
-		for n in 1:nalpha
+	# node_index_start = 1
+	for (alpha_idx, k) in enumerate(mink:maxk)
+		this_alpha_list = all_alpha_lists[alpha_idx]
+
+		for alpha in this_alpha_list
 			# The nodes and weights for this alpha mixture
-			for d in 1:D
-				index = alpha[n][d]
-
-				N[d] = nodes1D[index]
-				W[d] = weights1D[index]
-			end
+			N = [nodes1D[index] for index in alpha]
+			W = [weights1D[index] for index in alpha]
 
 			# Compute all the possible combinations of D-dimensional nodes
 			combN = combvec(N)
 
 			# Compute the associated weights
 			cw = combvec(W)
-			combW = (-1)^(maxk - k) * binomial(D - 1, D + k - order) * prod(cw, dims = 1)
+			combW = (-1)^(maxk - k) * binomial(D - 1, D + k - order) * map(prod, cw)
 
-			# Save nodes and weights
-			nodes = hcat(nodes, combN)
-			weights = vcat(weights, vec(combW))
+			append!(nodes, combN)
+			append!(weights, combW)
+			# node_index_end = node_idx + length(combN)
+			# nodes[node_index_start:node_index_end] = N
 		end
 	end
 
+	return nodes, weights
 	# Remove redundant nodes
-	unodes, uweights = uniquenodes(nodes, weights)
-
-	return unodes, uweights
+	# unodes, uweights = uniquenodes(nodes, weights)
+	uniquenodes(nodes, weights)
+	# return unodes, uweights
 end
 
 
