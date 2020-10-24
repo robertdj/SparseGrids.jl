@@ -75,16 +75,12 @@ function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vec
 
 			append!(nodes, combN)
 			append!(weights, combW)
-			# node_index_end = node_idx + length(combN)
-			# nodes[node_index_start:node_index_end] = N
 		end
 	end
 
 	return nodes, weights
-	# Remove redundant nodes
-	# unodes, uweights = uniquenodes(nodes, weights)
-	uniquenodes(nodes, weights)
-	# return unodes, uweights
+	# unique_nodes, combined_weights = uniquenodes(nodes, weights)
+	# return unique_nodes, combined_weights
 end
 
 
@@ -160,7 +156,7 @@ end
 
 
 """
-	combvec( vecs::Array{Any} ) -> Matrix
+	combvec(vecs)
 
 Counterpart of Matlab's combvec:
 Creates all combinations of vectors in `vecs`, an array of vectors.
@@ -168,7 +164,7 @@ Creates all combinations of vectors in `vecs`, an array of vectors.
 function combvec(vecs::Vector{Vector{T}}) where T
 	D = length(vecs)
 	N = map(length, vecs) |> prod
-	y = [Vector{Float64}(undef, D) for _ in 1:N]
+	y = [Vector{T}(undef, D) for _ in 1:N]
 
 	# Construct all Cartesian combinations of elements in vec as tuples
 	P = Iterators.product(vecs...)
@@ -180,48 +176,37 @@ function combvec(vecs::Vector{Vector{T}}) where T
 end
 
 
-# ------------------------------------------------------------
-
-# Copy of Base._sortslices for dims = 2 that also returns the permutation indices
-# Previously Base.Sort.sortcols
-function sortcolsidx(A::AbstractMatrix)
-    itspace = Base.compute_itspace(A, Val(2))
-    vecs = map(its -> view(A, its...), itspace)
-    p = sortperm(vecs)
-
-    return A[:, p], p
-end
-
-
 """
-	uniquenodes(nodes::Matrix, weights::Vector)
+	uniquenodes(nodes, weights)
 
-Find unique nodes and sum the weights of the identical nodes
+Find unique nodes and sum the weights of identical nodes
 """
-function uniquenodes(nodes::AbstractMatrix, weights::AbstractVector)
+function uniquenodes(nodes, weights)
 	# Sort nodes and weights according to nodes
-	sortnodes, P = sortcolsidx(nodes)
-	weights = weights[P]
+	perm = sortperm(nodes)
+	sorted_nodes = nodes[perm]
+	perm_weights = weights[perm]
 
-	D, N = size(nodes)
+	unique_nodes = similar(nodes, 0)
+	N = length(nodes)
 
-	keep = [1]
-	lastkeep = 1
+	indices_to_keep = [1]
+	sizehint!(indices_to_keep, N)
+	last_index_to_keep = 1
 
 	for n in 2:N
-		if sortnodes[:, n] == sortnodes[:, n-1]
-			weights[lastkeep] += weights[n]
+		if sorted_nodes[n - 1] == sorted_nodes[n]
+			perm_weights[last_index_to_keep] += weights[n]
 		else
-			lastkeep = n
-			push!(keep, n)
+			last_index_to_keep = n
+			push!(indices_to_keep, n)
 		end
 	end
 
-	# Keep unique nodes
-	unodes = sortnodes[:, keep]
-	uweights = weights[keep]
+	unique_nodes = sorted_nodes[indices_to_keep]
+	collected_weights = perm_weights[indices_to_keep]
 
-	return unodes, uweights
+	return unique_nodes, collected_weights
 end
 
 
@@ -251,4 +236,3 @@ function tensorgrid(D::Integer, order::Integer, f::Function=gausshermite)
 
 	return tensorN, tensorW
 end
-
