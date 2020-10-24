@@ -16,7 +16,7 @@ end
 # Moments of exp(-|x|^2)
 function gaussmoment(P::Vector{Int})
 	I = 1.0
-	for d = 1:length(P)
+	for d in 1:length(P)
 		I *= gaussmoment(P[d])
 	end
 
@@ -24,10 +24,10 @@ function gaussmoment(P::Vector{Int})
 end
 
 # Like gaussmoment, but with quadrature rule
-function gaussquad(P::Vector, nodes::Matrix, weights::Vector)
+function gaussquad(P::Vector, nodes, weights)
 	# Evaluate integrand
-	F = broadcast(^, nodes, P)
-	I = vec(prod(F, dims = 1))
+	F = map(x -> x.^P, nodes)
+	I = map(prod, F)
 
 	# Evaluate quadrature sum
 	Q = dot(I, weights)
@@ -38,43 +38,35 @@ end
 
 # ------------------------------------------------------------
 # Test quadrature for various dimensions and orders
-# Note: It is not interesting to test uneven moments for Gauss-Hermite
 
 # Dimension and order
 D = 3
 order = 4
 
 # Moments to test
-vecs = Vector{Vector{Int}}(undef, D)
-for d in 1:D
-	vecs[d] = [0:order;]
-end
+vecs = [collect(0:order) for d in 1:D]
 P = combvec(vecs)
+indices_of_all_even_powers = map(p -> all(map(iseven, p)), P)
+even_powers = P[indices_of_all_even_powers]
 
-M = size(P, 2)
+M = length(P)
 
-for generator = [FastGaussQuadrature.gausshermite, kpn]
+for generator in [FastGaussQuadrature.gausshermite, kpn]
 	# Quadrature points and weights
 	N, W = sparsegrid(D, order, generator)
 
 	# Maximum degree for which the generator gives correct results
-	generator == FastGaussQuadrature.gausshermite ?  max_degree = 2*order-1 : max_degree = D*order
+	generator == kpn ? max_degree = D * order : max_degree = 2*order - 1
 
-	for m = 1:M
-		# Test if all moments are even
-		curP = P[:,m]
+	for curP in even_powers
+		I = gaussmoment(curP) 
+		Q = gaussquad(curP, N, W)
 
-		if all(map(iseven, curP))
-			I = gaussmoment(curP) 
-			Q = gaussquad(curP, N, W)
-
-			# Expected test result depends on the total degree
-			if sum(curP) <= max_degree
-				@test I ≈ Q
-			else
-				@test abs(I - Q) > 1e-3
-			end
+		# Expected test result depends on the total degree
+		if sum(curP) <= max_degree
+			@test I ≈ Q
+		else
+			@test abs(I - Q) > 1e-3
 		end
 	end
 end
-
