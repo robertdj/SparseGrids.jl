@@ -195,8 +195,8 @@ function uniquenodes(nodes, weights)
 	last_index_to_keep = 1
 
 	for n in 2:N
-		if sorted_nodes[n - 1] == sorted_nodes[n]
-			perm_weights[last_index_to_keep] += weights[n]
+		if sorted_nodes[last_index_to_keep] == sorted_nodes[n]
+			perm_weights[last_index_to_keep] += perm_weights[n]
 		else
 			last_index_to_keep = n
 			push!(indices_to_keep, n)
