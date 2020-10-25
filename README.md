@@ -28,7 +28,7 @@ The `gausshermite` quadrature rule is used for computing integrals over `R^D` wi
 To approximate such an integral, compute
 
 ```julia
-dot( weigths, g(nodes) )
+dot(weigths, g.(nodes))
 ```
 
 Note that when integrating against `exp(-|x|^2)` instead of the standard Gaussian density, the nodes and weigths are rescaled compared to e.g. the source of the Kronrod-Patterson nodes mentioned below.

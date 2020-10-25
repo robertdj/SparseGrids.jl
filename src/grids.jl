@@ -41,64 +41,59 @@ end
 function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vector{Vector{Float64}})
 	order = length(nodes1D)
 
-	# Final nodes and weights in D dimensions
-	nodes = Array{Float64}(undef, D, 0)
-	weights = Array{Float64}(undef, 0)
-
-	mink = max(0, order-D)
+	mink = max(0, order - D)
 	maxk = order - 1
+	all_alpha_lists = [listNdq(D, D + k) for k in mink:maxk]
 
-	# Temporary nodes and weights for 1 dimension
-	N = Vector{Vector{Float64}}(undef, D)
-	W = similar(N)
+	number_of_nodes = map(x -> sum(prod.(x)), all_alpha_lists) |> sum
 
-	for k in mink:maxk
-		alpha = listNdq(D, D+k)
-		nalpha = size(alpha, 2)
+	# Final nodes and weights in D dimensions
+	nodes = Vector{Vector{Float64}}(undef, 0)
+	sizehint!(nodes, number_of_nodes)
 
-		for n in 1:nalpha
+	weights = Array{Float64}(undef, 0)
+	sizehint!(weights, number_of_nodes)
+
+	for (alpha_idx, k) in enumerate(mink:maxk)
+		this_alpha_list = all_alpha_lists[alpha_idx]
+
+		for alpha in this_alpha_list
 			# The nodes and weights for this alpha mixture
-			for d in 1:D
-				N[d] = nodes1D[ alpha[d,n] ]
-				W[d] = weights1D[ alpha[d,n] ]
-			end
+			N = [nodes1D[index] for index in alpha]
+			W = [weights1D[index] for index in alpha]
 
 			# Compute all the possible combinations of D-dimensional nodes
 			combN = combvec(N)
 
 			# Compute the associated weights
 			cw = combvec(W)
-			combW = (-1)^(maxk-k) * binomial(D-1, D+k-order) * prod(cw, dims = 1)
+			combW = (-1)^(maxk - k) * binomial(D - 1, D + k - order) * map(prod, cw)
 
-			# Save nodes and weights
-			nodes = hcat(nodes, combN)
-			weights = vcat(weights, vec(combW))
+			append!(nodes, combN)
+			append!(weights, combW)
 		end
 	end
 
-	# Remove redundant nodes
-	unodes, uweights = uniquenodes(nodes, weights)
-
-	return unodes, uweights
+	unique_nodes, combined_weights = uniquenodes(nodes, weights)
+	return unique_nodes, combined_weights
 end
 
 
-# ------------------------------------------------------------
-# To correctly reduce "overlapping" nodes the middle node in an
-# uneven number must be exactly zero
-
+"""
+To correctly reduce "overlapping" nodes the middle node in an uneven number must be exactly zero
+"""
 function symmetrize!(nodes::Vector{Float64})
 	N = length(nodes)
 
 	if isodd(N)
-		midpoint = div( N-1, 2 )
-		nodes[ midpoint+1 ] = 0.0
+		midpoint = div(N - 1, 2)
+		nodes[midpoint + 1] = 0.0
 	else
-		midpoint = div( N, 2 )
+		midpoint = div(N, 2)
 	end
 
 	for n in 1:midpoint
-		nodes[n] = -nodes[N+1-n]
+		nodes[n] = -nodes[N + 1 - n]
 	end
 end
 
@@ -118,11 +113,11 @@ The algorithm and the formula for computing the number of elements in this set i
 """
 function listNdq(D::Integer, q::Integer)
 	if q < D
-		error("listNdq: q must be larger than D")
+		error("q must be larger than D")
 	end
 
-	M = binomial(q-1, D-1)
-	L = ones(Int, D, M)
+	M = binomial(q - 1, D - 1)
+	L = [ones(Int, D) for _ in 1:M]
 
 	k = ones(Int, D)
 	maxk = q - D + 1
@@ -138,7 +133,7 @@ function listNdq(D::Integer, q::Integer)
 			k[p] = 1
 			p += 1
 		else
-			for i in 1:p-1
+			for i in 1:p - 1
 				khat[i] = khat[p] - k[p] + 1
 			end
 
@@ -146,7 +141,7 @@ function listNdq(D::Integer, q::Integer)
 			p = 1
 
 			count += 1
-			L[:,count] = k
+			copy!(L[count], k)
 		end
 	end
 
@@ -155,70 +150,57 @@ end
 
 
 """
-	combvec( vecs::Array{Any} ) -> Matrix
+	combvec(vecs)
 
 Counterpart of Matlab's combvec:
 Creates all combinations of vectors in `vecs`, an array of vectors.
 """
 function combvec(vecs::Vector{Vector{T}}) where T
+	D = length(vecs)
+	N = map(length, vecs) |> prod
+	y = [Vector{T}(undef, D) for _ in 1:N]
+
 	# Construct all Cartesian combinations of elements in vec as tuples
 	P = Iterators.product(vecs...)
-
-	D = length(vecs)
-	N = length(P)::Int64
-	y = Array{T}(undef, D,N)
-
-	n = 0
-	for p in P
-		y[:, n+=1] = [p...]
+	for (n, p) in enumerate(P)
+		y[n] = [p...]
 	end
 
 	return y
 end
 
 
-# ------------------------------------------------------------
-
-# Copy of Base._sortslices for dims = 2 that also returns the permutation indices
-# Previously Base.Sort.sortcols
-function sortcolsidx(A::AbstractMatrix)
-    itspace = Base.compute_itspace(A, Val(2))
-    vecs = map(its->view(A, its...), itspace)
-    p = sortperm(vecs)
-
-    return A[:,p], p
-end
-
-
 """
-	uniquenodes(nodes::Matrix, weights::Vector)
+	uniquenodes(nodes, weights)
 
-Find unique nodes and sum the weights of the identical nodes
+Find unique nodes and sum the weights of identical nodes
 """
-function uniquenodes(nodes::AbstractMatrix, weights::AbstractVector)
+function uniquenodes(nodes, weights)
 	# Sort nodes and weights according to nodes
-	sortnodes, P = sortcolsidx(nodes)
-	weights = weights[P]
+	perm = sortperm(nodes)
+	sorted_nodes = nodes[perm]
+	perm_weights = weights[perm]
 
-	D, N = size(nodes)
+	unique_nodes = similar(nodes, 0)
+	N = length(nodes)
 
-	keep = [1]
-	lastkeep = 1
+	indices_to_keep = [1]
+	sizehint!(indices_to_keep, N)
+	last_index_to_keep = 1
 
 	for n in 2:N
-		if sortnodes[:,n] == sortnodes[:,n-1]
-			weights[lastkeep] += weights[n]
+		if sorted_nodes[last_index_to_keep] == sorted_nodes[n]
+			perm_weights[last_index_to_keep] += perm_weights[n]
 		else
-			lastkeep = n
-			push!(keep, n)
+			last_index_to_keep = n
+			push!(indices_to_keep, n)
 		end
 	end
 
-	# Keep unique nodes
-	unodes = sortnodes[:, keep]
-	uweights = weights[keep]
+	unique_nodes = sorted_nodes[indices_to_keep]
+	collected_weights = perm_weights[indices_to_keep]
 
-	return unodes, uweights
+	return unique_nodes, collected_weights
 end
 
 
@@ -231,11 +213,11 @@ end
 	Compute tensor grid of `N` nodes and corresponding weights `W` for `D` dimensions.
 """
 function tensorgrid(N::Vector, W::Vector, D::Integer)
-	NN = repeat( [N], outer=[D; 1] )
-	WW = repeat( [W], outer=[D; 1] )
+	NN = repeat([N], outer=[D; 1])
+	WW = repeat([W], outer=[D; 1])
 
 	tensorN = combvec(NN[:])
-	tensorW = vec(prod( combvec(WW[:]), 1 ))
+	tensorW = vec(prod(combvec(WW[:]), 1))
 
 	return tensorN, tensorW
 end
@@ -248,4 +230,3 @@ function tensorgrid(D::Integer, order::Integer, f::Function=gausshermite)
 
 	return tensorN, tensorW
 end
-

@@ -1,5 +1,5 @@
 using SparseGrids
-using FastGaussQuadrature
+import FastGaussQuadrature: gausshermite
 using LinearAlgebra
 using Test
 
@@ -8,26 +8,21 @@ function gaussmoment(m::Int)
 	if isodd(m)
 		return 0.0
 	elseif iseven(m)
-		m2 = div(m, 2)
-		return prod(1:2:m-1) * sqrt(pi) / 2^m2
+		m_half = div(m, 2)
+		return prod(1:2:m - 1) * sqrt(pi) / 2^m_half
 	end
 end
 
 # Moments of exp(-|x|^2)
 function gaussmoment(P::Vector{Int})
-	I = 1.0
-	for d = 1:length(P)
-		I *= gaussmoment(P[d])
-	end
-
-	return I 
+	mapreduce(gaussmoment, *, P)
 end
 
 # Like gaussmoment, but with quadrature rule
-function gaussquad(P::Vector, nodes::Matrix, weights::Vector)
+function gaussquad(P, nodes, weights)
 	# Evaluate integrand
-	F = broadcast(^, nodes, P)
-	I = vec(prod(F, dims = 1))
+	F = map(x -> x.^P, nodes)
+	I = map(prod, F)
 
 	# Evaluate quadrature sum
 	Q = dot(I, weights)
@@ -38,43 +33,33 @@ end
 
 # ------------------------------------------------------------
 # Test quadrature for various dimensions and orders
-# Note: It is not interesting to test uneven moments for Gauss-Hermite
 
-# Dimension and order
-D = 3
-order = 4
+@testset "Test quadrature rules" begin
+    dim = 3
+    order = 4
 
-# Moments to test
-vecs = Vector{Vector{Int}}(undef, D)
-for d in 1:D
-	vecs[d] = [0:order;]
+	# Moments to test
+    vecs = [collect(0:order) for d in 1:dim]
+    all_powers = combvec(vecs)
+    indices_with_all_even_powers = map(p -> all(map(iseven, p)), all_powers)
+    even_powers = all_powers[indices_with_all_even_powers]
+
+    @testset "Quadrature rule $generator" for generator in [gausshermite, kpn]
+        N, W = sparsegrid(dim, order, generator)
+        
+        # Maximum degree for which the generator gives correct results
+        generator == kpn ? max_degree = dim * order : max_degree = 2 * order - 1
+        
+		@testset "Gaussian moments $powers" for powers in even_powers
+        	I = gaussmoment(powers) 
+        	Q = gaussquad(powers, N, W)
+        
+        	# Expected test result depends on the total degree
+        	if sum(powers) <= max_degree
+        		@test I ≈ Q
+        	else
+        		@test abs(I - Q) > 1e-3
+        	end
+        end
+    end
 end
-P = combvec(vecs)
-
-M = size(P, 2)
-
-for generator = [FastGaussQuadrature.gausshermite, kpn]
-	# Quadrature points and weights
-	N, W = sparsegrid(D, order, generator)
-
-	# Maximum degree for which the generator gives correct results
-	generator == FastGaussQuadrature.gausshermite ?  max_degree = 2*order-1 : max_degree = D*order
-
-	for m = 1:M
-		# Test if all moments are even
-		curP = P[:,m]
-
-		if all(map(iseven, curP))
-			I = gaussmoment(curP) 
-			Q = gaussquad(curP, N, W)
-
-			# Expected test result depends on the total degree
-			if sum(curP) <= max_degree
-				@test I ≈ Q
-			else
-				@test abs(I - Q) > 1e-3
-			end
-		end
-	end
-end
-
