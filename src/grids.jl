@@ -48,16 +48,12 @@ function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vec
 	number_of_nodes = map(x -> sum(prod.(x)), all_alpha_lists) |> sum
 
 	# Final nodes and weights in D dimensions
-	# nodes = [Vector{Float64}(undef, D) for _ in 1:1]
-	# empty!(nodes)
 	nodes = Vector{Vector{Float64}}(undef, 0)
 	sizehint!(nodes, number_of_nodes)
-	# nodes = [Vector{Float64}(undef, D) for _ in 1:number_of_nodes]
+
 	weights = Array{Float64}(undef, 0)
 	sizehint!(weights, number_of_nodes)
-	# weights = Array{Float64}(undef, number_of_nodes)
 
-	# node_index_start = 1
 	for (alpha_idx, k) in enumerate(mink:maxk)
 		this_alpha_list = all_alpha_lists[alpha_idx]
 
@@ -78,16 +74,14 @@ function sparsegrid(D::Integer, nodes1D::Vector{Vector{Float64}}, weights1D::Vec
 		end
 	end
 
-	return nodes, weights
-	# unique_nodes, combined_weights = uniquenodes(nodes, weights)
-	# return unique_nodes, combined_weights
+	unique_nodes, combined_weights = uniquenodes(nodes, weights)
+	return unique_nodes, combined_weights
 end
 
 
-# ------------------------------------------------------------
-# To correctly reduce "overlapping" nodes the middle node in an
-# uneven number must be exactly zero
-
+"""
+To correctly reduce "overlapping" nodes the middle node in an uneven number must be exactly zero
+"""
 function symmetrize!(nodes::Vector{Float64})
 	N = length(nodes)
 
