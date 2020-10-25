@@ -8,23 +8,18 @@ function gaussmoment(m::Int)
 	if isodd(m)
 		return 0.0
 	elseif iseven(m)
-		m2 = div(m, 2)
-		return prod(1:2:m-1) * sqrt(pi) / 2^m2
+		m_half = div(m, 2)
+		return prod(1:2:m - 1) * sqrt(pi) / 2^m_half
 	end
 end
 
 # Moments of exp(-|x|^2)
 function gaussmoment(P::Vector{Int})
-	I = 1.0
-	for d in 1:length(P)
-		I *= gaussmoment(P[d])
-	end
-
-	return I 
+	mapreduce(gaussmoment, *, P)
 end
 
 # Like gaussmoment, but with quadrature rule
-function gaussquad(P::Vector, nodes, weights)
+function gaussquad(P, nodes, weights)
 	# Evaluate integrand
 	F = map(x -> x.^P, nodes)
 	I = map(prod, F)
