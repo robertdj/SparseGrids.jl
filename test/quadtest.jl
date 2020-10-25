@@ -1,5 +1,5 @@
 using SparseGrids
-using FastGaussQuadrature
+import FastGaussQuadrature: gausshermite
 using LinearAlgebra
 using Test
 
@@ -34,34 +34,32 @@ end
 # ------------------------------------------------------------
 # Test quadrature for various dimensions and orders
 
-# Dimension and order
-D = 3
-order = 4
+@testset "Test quadrature rules" begin
+    dim = 3
+    order = 4
 
-# Moments to test
-vecs = [collect(0:order) for d in 1:D]
-P = combvec(vecs)
-indices_of_all_even_powers = map(p -> all(map(iseven, p)), P)
-even_powers = P[indices_of_all_even_powers]
+	# Moments to test
+    vecs = [collect(0:order) for d in 1:dim]
+    all_powers = combvec(vecs)
+    indices_with_all_even_powers = map(p -> all(map(iseven, p)), all_powers)
+    even_powers = all_powers[indices_with_all_even_powers]
 
-M = length(P)
-
-for generator in [FastGaussQuadrature.gausshermite, kpn]
-	# Quadrature points and weights
-	N, W = sparsegrid(D, order, generator)
-
-	# Maximum degree for which the generator gives correct results
-	generator == kpn ? max_degree = D * order : max_degree = 2*order - 1
-
-	for curP in even_powers
-		I = gaussmoment(curP) 
-		Q = gaussquad(curP, N, W)
-
-		# Expected test result depends on the total degree
-		if sum(curP) <= max_degree
-			@test I ≈ Q
-		else
-			@test abs(I - Q) > 1e-3
-		end
-	end
+    @testset "Quadrature rule $generator" for generator in [gausshermite, kpn]
+        N, W = sparsegrid(dim, order, generator)
+        
+        # Maximum degree for which the generator gives correct results
+        generator == kpn ? max_degree = dim * order : max_degree = 2 * order - 1
+        
+		@testset "Gaussian moments $powers" for powers in even_powers
+        	I = gaussmoment(powers) 
+        	Q = gaussquad(powers, N, W)
+        
+        	# Expected test result depends on the total degree
+        	if sum(powers) <= max_degree
+        		@test I ≈ Q
+        	else
+        		@test abs(I - Q) > 1e-3
+        	end
+        end
+    end
 end
