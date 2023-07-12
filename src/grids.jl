@@ -210,7 +210,7 @@ function tensorgrid(N::Vector, W::Vector, D::Integer)
 	WW = repeat([W], outer=[D; 1])
 
 	tensorN = combvec(NN[:])
-	tensorW = vec(prod(combvec(WW[:]), 1))
+	tensorW = map(prod, combvec(WW[:]))
 
 	return tensorN, tensorW
 end
