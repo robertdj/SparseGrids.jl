@@ -46,20 +46,24 @@ end
 
     @testset "Quadrature rule $generator" for generator in [gausshermite, kpn]
         N, W = sparsegrid(dim, order, generator)
+        Ntensor, Wtensor = tensorgrid(dim, order, generator)
         
         # Maximum degree for which the generator gives correct results
         generator == kpn ? max_degree = dim * order : max_degree = 2 * order - 1
         
 		@testset "Gaussian moments $powers" for powers in even_powers
         	I = gaussmoment(powers) 
-        	Q = gaussquad(powers, N, W)
+        	sparse_quadrature = gaussquad(powers, N, W)
         
         	# Expected test result depends on the total degree
         	if sum(powers) <= max_degree
-        		@test I ≈ Q
+        		@test I ≈ sparse_quadrature
         	else
-        		@test abs(I - Q) > 1e-3
+        		@test abs(I - sparse_quadrature) > 1e-3
         	end
+
+        	tensor_quadrature = gaussquad(powers, Ntensor, Wtensor)
+        	@test I ≈ tensor_quadrature
         end
     end
 end
