@@ -34,6 +34,39 @@ function sparsegrid(D::Integer, order::Integer, f::Function=gausshermite; sym::B
 	return nodes, weights
 end
 
+function sparsegrid(D::Integer, order::Integer, lb::Array{Float64,1}, ub::Array{Float64,1}, f::Function=gausschebyshevt; sym::Bool=true)
+
+	if length(lb) != D || length(ub) != D
+		error("Either 'lb' or 'ub' have incorrect length.")
+	end
+	# Final nodes and weights in D dimensions
+	nodes = Array{Float64}(undef, D, 0)
+	weights = Array{Float64}(undef, 0)
+
+	# Compute univariate nodes and weights
+	nodes1D = Vector{Vector{Float64}}(undef, order)
+	weights1D = similar(nodes1D)
+
+	for k in 1:order
+		nodes1D[k], weights1D[k] = f(k)
+
+		if sym
+			symmetrize!(nodes1D[k])
+		end
+	end
+
+	nodes, weights = sparsegrid(D, nodes1D, weights1D)
+
+	for i in eachindex(nodes)
+
+		for j in eachindex(nodes[i])
+		    nodes[i][j] = 0.5 * (lb[j] + ub[j]) + 0.5 * (ub[j] - lb[j]) * nodes[i][j]
+		end
+
+	end
+
+	return nodes, weights
+end
 
 # Computation of sparse grid nodes and the associated weights
 # from collection of one-dimensional nodes and weights
